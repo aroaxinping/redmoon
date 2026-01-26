@@ -9,6 +9,8 @@ Outputs (in data/):
     - menstrual.csv      Menstrual flow records with intensity
     - wrist_temp.csv     Sleeping wrist temperature
     - breathing.csv      Sleeping breathing disturbances
+    - hrv.csv            Heart rate variability (SDNN)
+    - resting_hr.csv     Resting heart rate
 """
 
 import sys
@@ -25,6 +27,8 @@ TYPES = {
     "HKCategoryTypeIdentifierMenstrualFlow": "menstrual",
     "HKQuantityTypeIdentifierAppleSleepingWristTemperature": "wrist_temp",
     "HKQuantityTypeIdentifierAppleSleepingBreathingDisturbances": "breathing",
+    "HKQuantityTypeIdentifierHeartRateVariabilitySDNN": "hrv",
+    "HKQuantityTypeIdentifierRestingHeartRate": "resting_hr",
 }
 
 # Regex to parse Record elements (faster than full XML parsing for 1.7GB)
@@ -135,6 +139,23 @@ def to_dataframes(records: dict[str, list[dict]]) -> dict[str, pd.DataFrame]:
         df["disturbances"] = pd.to_numeric(df["value"])
         df = df[["date", "disturbances"]].sort_values("date").reset_index(drop=True)
         dfs["breathing"] = df
+
+    # --- HRV (SDNN) ---
+    if records["hrv"]:
+        df = pd.DataFrame(records["hrv"])
+        df["datetime"] = pd.to_datetime(df["start"])
+        df["date"] = df["datetime"].dt.date
+        df["hrv_ms"] = pd.to_numeric(df["value"])
+        df = df[["date", "datetime", "hrv_ms"]].sort_values("datetime").reset_index(drop=True)
+        dfs["hrv"] = df
+
+    # --- Resting Heart Rate ---
+    if records["resting_hr"]:
+        df = pd.DataFrame(records["resting_hr"])
+        df["date"] = pd.to_datetime(df["start"]).dt.date
+        df["resting_hr_bpm"] = pd.to_numeric(df["value"])
+        df = df[["date", "resting_hr_bpm"]].sort_values("date").reset_index(drop=True)
+        dfs["resting_hr"] = df
 
     return dfs
 
