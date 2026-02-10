@@ -1,123 +1,184 @@
 # redmoon
 
-Análisis de datos reales de Apple Health para investigar si existe una relación entre el ciclo menstrual y la calidad del sueño.
+Herramienta de analisis que cruza datos del ciclo menstrual con metricas de sueno, HRV y frecuencia cardiaca a partir de tu exportacion de Apple Health.
 
-## Instalación
+Una sola linea y obtienes un informe con tests estadisticos, correlaciones y deteccion de patrones hormonales en tu sueno.
+
+```bash
+pip install redmoon
+redmoon analyze exportacion.xml
+```
+
+---
+
+## Que encuentra redmoon
+
+Resultados reales con ~6 anos de datos de Apple Health (76 ciclos, 1,153 noches):
+
+| Metrica | Cambia con el ciclo? | Detalle |
+|---|---|---|
+| Temperatura de muneca | Si (p < 0.000001) | +0.375 C en fase lutea vs folicular |
+| HRV | Si (p < 0.000001) | -3ms en fase lutea |
+| Frecuencia cardiaca en reposo | Si (p < 0.000001) | +2bpm en fase lutea |
+| Despertares premenstruales | Si (p = 0.034) | +1.1 despertares/noche los ultimos 5 dias |
+| Duracion del sueno | No (p = 0.28) | Sin diferencia entre fases |
+| % REM / % Deep | No (p > 0.7) | Sin diferencia entre fases |
+| Eficiencia del sueno | No (p = 0.21) | Sin diferencia entre fases |
+
+**Conclusion**: las hormonas cambian tu fisiologia nocturna de forma muy clara (temperatura, HRV, frecuencia cardiaca), pero el sueno en si solo se ve afectado justo antes del periodo, con mas despertares.
+
+---
+
+## Como usar redmoon con tus datos
+
+### 1. Exportar datos de Apple Health
+
+En tu iPhone: Salud → foto de perfil → Exportar datos de salud → te genera un zip con `exportacion.xml`.
+
+### 2. Instalar
 
 ```bash
 pip install redmoon
 ```
 
-## Quick start
+Con extras opcionales:
 
 ```bash
-# Analizar tu exportación de Apple Health
-redmoon analyze exportación.xml
-
-# Guardar report + CSVs intermedios
-redmoon analyze exportación.xml --output report.txt --csv-dir data/
+pip install redmoon[all]    # incluye visualizaciones, ML y dashboard
+pip install redmoon[viz]    # solo matplotlib + seaborn
+pip install redmoon[ml]     # solo scikit-learn
 ```
 
-O como librería Python:
+### 3. Ejecutar analisis
+
+**Desde terminal:**
+
+```bash
+# Analisis completo con report en consola
+redmoon analyze exportacion.xml
+
+# Guardar report a archivo + CSVs intermedios
+redmoon analyze exportacion.xml --output report.txt --csv-dir data/
+```
+
+**Como libreria Python:**
 
 ```python
 from redmoon import parse_export, CycleSleepAnalyzer
 
-data = parse_export("exportación.xml")
+data = parse_export("exportacion.xml")
 analyzer = CycleSleepAnalyzer(data)
 report = analyzer.run()
+
+# Report completo en texto
 print(report.summary())
+
+# Medias por fase como DataFrame
+report.phase_means()
+
+# Tests estadisticos
+report.statistical_tests()
+
+# Efecto premenstrual
+report.premenstrual_effect()
 ```
 
-## Hipótesis
-
-> El ciclo hormonal influye en la duración, estructura y calidad del sueño de forma predecible a lo largo de sus fases (menstrual, folicular, ovulatoria, lútea).
-
-## Hallazgos principales
-
-- **La temperatura nocturna confirma el ciclo hormonal** (p < 0.000001): +0.375 C en fase lútea vs folicular. La progesterona post-ovulación se refleja claramente en la muñeca.
-- **El sueño no cambia significativamente entre fases** a nivel global (p > 0.05 en duración, % REM, % Deep, eficiencia).
-- **Pero justo antes del periodo hay más despertares**: 6.3 vs 5.1 despertares/noche en los últimos 5 días pre-menstruales (p = 0.034). El sueño se fragmenta más, aunque la duración total se mantiene.
-
-## Datos
-
-Exportación de Apple Health (~6 años de datos) con:
-- **Sueño**: fases detalladas (Core, REM, Deep, Awake), duración total, eficiencia
-- **Periodo**: flujo menstrual con intensidad (light/medium/heavy)
-- **Temperatura de muñeca** durante el sueño
-- **Perturbaciones respiratorias** nocturnas
-
-## Limpieza de datos y tratamiento de outliers
-
-Los datos crudos de Apple Health contienen inconsistencias que hay que aislar antes de analizar:
-
-### Eficiencia del sueño > 100%
-
-Apple Health a veces registra el tiempo "InBed" desde una fuente (ej. iPhone) y las fases de sueño desde otra (ej. Apple Watch). Cuando el Watch detecta más tiempo dormido del que el iPhone registró como "en cama", la eficiencia calculada (`sleep / in_bed * 100`) supera el 100%, llegando a valores absurdos como 3600%.
-
-**Solución**: Usamos `max(InBed, sleep + awake)` como denominador, y se capea la eficiencia al 100%. Esto elimina los falsos positivos sin perder noches reales.
-
-### Ciclos anormales
-
-Ciclos de <21 o >45 días se excluyen del análisis de fases. Pueden representar datos de periodo mal registrados, periodos perdidos, o condiciones médicas que alterarían la asignación de fases.
-
-### Noches sin datos de fases
-
-Las noches anteriores a 2020 solo tienen datos "InBed" sin desglose en Core/REM/Deep (Apple Watch no soportaba sleep stages). Se filtran noches con <2h de sueño total y >16h en cama para eliminar registros erróneos.
-
-## Métricas analizadas por fase del ciclo
-
-| Métrica | Descripción |
-|---------|-------------|
-| Duración total de sueño | Horas dormidas por noche |
-| % sueño REM | Proporción de sueño REM sobre total |
-| % sueño profundo (Deep) | Proporción de sueño profundo sobre total |
-| Eficiencia del sueño | Tiempo dormida / tiempo en cama |
-| Despertares nocturnos | Número de interrupciones por noche |
-| Temperatura de muñeca | Variación térmica nocturna |
-| Perturbaciones respiratorias | Eventos respiratorios por noche |
-
-## Fases del ciclo
-
-El ciclo menstrual es un proceso hormonal que se repite aproximadamente cada 28-30 días. El análisis divide cada ciclo en 4 fases, estimadas de forma proporcional a la duración real de cada ciclo individual:
-
-### 1. Menstrual (días 1-5)
-Días de sangrado. Los niveles de estrógeno y progesterona están en su punto más bajo. El cuerpo descama el endometrio del ciclo anterior. Es frecuente sentir fatiga, dolor abdominal y cambios de ánimo.
-
-### 2. Folicular (días 6-13)
-El estrógeno sube progresivamente mientras los folículos ováricos maduran. Es la fase en la que generalmente hay más energía, mejor ánimo y mayor claridad mental. El cuerpo se prepara para la ovulación.
-
-### 3. Ovulatoria (días 14-16)
-Pico de estrógeno y de hormona luteinizante (LH), que desencadena la liberación del óvulo. Suele ser el punto de máxima energía del ciclo. La temperatura basal empieza a subir tras la ovulación.
-
-### 4. Lútea (días 17-28+)
-La progesterona sube significativamente (el cuerpo lúteo la produce tras ovular). Esto eleva la temperatura basal ~0.3-0.5 C. En los últimos días, si no hay embarazo, tanto progesterona como estrógeno caen bruscamente, causando los síntomas premenstruales (PMS): irritabilidad, hinchazón, insomnio, antojos.
-
-Adicionalmente, la fase lútea se subdivide en **lútea temprana** y **premenstrual** (últimos 5 días antes del periodo) para aislar el efecto PMS en el sueño.
-
-## Estructura
-
-```
-├── redmoon/                     # Paquete PyPI
-│   ├── parser.py                # Parser XML → DataFrames
-│   ├── analyzer.py              # Motor de análisis + report
-│   └── cli.py                   # CLI: redmoon analyze
-├── src/
-│   └── parse_health_export.py   # Parser standalone (legacy)
-├── notebooks/
-│   └── analysis.ipynb           # Análisis completo con visualizaciones
-├── dashboard.py                 # Dashboard interactivo (Streamlit)
-├── data/                        # (gitignored) datos privados
-└── pyproject.toml
-```
-
-## Dashboard
+### 4. Dashboard interactivo (opcional)
 
 ```bash
 pip install redmoon[all]
 streamlit run dashboard.py
 ```
 
+5 vistas: resumen, sueno por fase, biomarcadores, efecto premenstrual, tendencia temporal.
+
+### 5. Notebook de analisis (opcional)
+
+```bash
+jupyter notebook notebooks/analysis.ipynb
+```
+
+16 secciones con visualizaciones completas, tests estadisticos, prediccion ML, y correlaciones.
+
+---
+
+## Que datos necesitas
+
+redmoon extrae automaticamente del XML de Apple Health:
+
+| Dato | Fuente | Registros tipicos |
+|---|---|---|
+| Fases de sueno (Core, REM, Deep, Awake) | Apple Watch | Miles |
+| Flujo menstrual | App Salud / tracker | Cientos |
+| Temperatura de muneca nocturna | Apple Watch Ultra / Series 8+ | Cientos |
+| HRV (SDNN) | Apple Watch | Miles |
+| Frecuencia cardiaca en reposo | Apple Watch | Miles |
+| Perturbaciones respiratorias | Apple Watch | Cientos |
+
+No necesitas todos. El minimo es **sueno + periodo**. Los biomarcadores (temperatura, HRV, HR) enriquecen el analisis pero son opcionales.
+
+---
+
+## Metodologia
+
+### Agregacion nocturna
+
+Cada noche se asigna a la fecha en que empieza el sueno. Si te duermes a las 2:00, esa noche cuenta como el dia anterior. Se filtran noches con <2h de sueno o >16h en cama.
+
+### Deteccion de ciclos
+
+Los dias de sangrado consecutivos se agrupan en periodos. Un nuevo periodo empieza cuando hay >5 dias sin sangrado. Ciclos de <21 o >45 dias se excluyen.
+
+### Asignacion de fases
+
+Cada ciclo se divide en 4 fases proporcionalmente a su duracion real:
+
+| Fase | Dias tipicos | Que pasa hormonalmente |
+|---|---|---|
+| **Menstrual** | 1-5 | Estrogeno y progesterona en minimo. Sangrado. Fatiga. |
+| **Folicular** | 6-13 | Estrogeno sube. Mas energia y claridad mental. |
+| **Ovulatoria** | 14-16 | Pico de estrogeno y LH. Liberacion del ovulo. Temperatura empieza a subir. |
+| **Lutea** | 17-28+ | Progesterona alta. Temperatura +0.3-0.5 C. Al final, caida hormonal → PMS. |
+
+La fase lutea se subdivide en **lutea temprana** y **premenstrual** (ultimos 5 dias) para aislar el efecto PMS.
+
+### Tests estadisticos
+
+- **Kruskal-Wallis**: test no parametrico para comparar las 4 fases
+- **Mann-Whitney U con correccion de Bonferroni**: comparaciones post-hoc por pares
+- **Spearman**: correlaciones entre metricas
+- **Random Forest**: prediccion de fase lutea vs no-lutea (F1 = 0.79 con temperatura + HRV + HR)
+
+### Limpieza de outliers
+
+- **Eficiencia > 100%**: Apple Health puede registrar InBed desde el iPhone y las fases desde el Watch, causando inconsistencias. Se usa `max(InBed, sleep+awake)` como denominador y se capea al 100%.
+- **Ciclos anormales**: <21 o >45 dias se excluyen.
+- **Noches pre-2020**: solo tienen InBed sin desglose en fases (el Watch no lo soportaba).
+
+---
+
+## Estructura del proyecto
+
+```
+redmoon/
+├── redmoon/               # Paquete Python (PyPI)
+│   ├── parser.py          #   XML → DataFrames
+│   ├── analyzer.py        #   Analisis + report
+│   └── cli.py             #   CLI: redmoon analyze
+├── notebooks/
+│   └── analysis.ipynb     # Analisis completo con graficas
+├── dashboard.py           # Dashboard Streamlit
+├── src/
+│   └── parse_health_export.py  # Parser standalone
+├── data/                  # (gitignored) tus datos privados
+├── pyproject.toml
+└── LICENSE                # MIT
+```
+
 ## Privacidad
 
-Los datos de salud están en `.gitignore`. Solo se comparten los scripts de análisis y los resultados agregados/anonimizados.
+Los datos de salud estan en `.gitignore`. El repo solo contiene codigo. Ningun dato personal se sube.
+
+## Licencia
+
+MIT
