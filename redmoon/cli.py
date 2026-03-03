@@ -1,9 +1,9 @@
 """
-Command-line interface for cyclesleep.
+Command-line interface for redmoon.
 
 Usage:
-    cyclesleep analyze <path_to_export.xml>
-    cyclesleep analyze <path_to_export.xml> --output report.txt
+    redmoon analyze <path_to_export.xml>
+    redmoon analyze <path_to_export.xml> --output report.txt
 """
 
 import argparse
@@ -15,7 +15,7 @@ from .analyzer import CycleSleepAnalyzer
 
 def main():
     parser = argparse.ArgumentParser(
-        prog="cyclesleep",
+        prog="redmoon",
         description="Analyze menstrual cycle vs sleep quality from Apple Health data",
     )
     subparsers = parser.add_subparsers(dest="command")
