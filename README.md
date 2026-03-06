@@ -162,22 +162,49 @@ La fase lutea se subdivide en **lutea temprana** y **premenstrual** (ultimos 5 d
 ```
 redmoon/
 ├── redmoon/               # Paquete Python (PyPI)
+│   ├── __init__.py        #   Exports: parse_export, CycleSleepAnalyzer
 │   ├── parser.py          #   XML → DataFrames
 │   ├── analyzer.py        #   Analisis + report
+│   ├── constants.py       #   Constantes, umbrales y logica de fases
 │   └── cli.py             #   CLI: redmoon analyze
+├── tests/                 # Tests (pytest, 37 tests)
+│   ├── test_parser.py     #   Parser: tipos, columnas, validacion
+│   ├── test_analyzer.py   #   Analyzer: pipeline, report, edge cases
+│   └── test_constants.py  #   Asignacion de fases y constantes
+├── sample_data/           # Datos sinteticos para probar sin Apple Health
 ├── notebooks/
 │   └── analysis.ipynb     # Analisis completo con graficas
 ├── dashboard.py           # Dashboard Streamlit
-├── src/
-│   └── parse_health_export.py  # Parser standalone
+├── .github/workflows/     # CI: tests en Python 3.9-3.12
 ├── data/                  # (gitignored) tus datos privados
 ├── pyproject.toml
 └── LICENSE                # MIT
 ```
 
+## Desarrollo local
+
+```bash
+git clone https://github.com/aroaxinping/redmoon.git
+cd redmoon
+pip install -e ".[all]"
+pip install pytest
+
+# Tests
+pytest tests/ -v
+
+# Probar con datos de ejemplo (sin necesitar Apple Health)
+python -c "
+import pandas as pd
+from redmoon import CycleSleepAnalyzer
+data = {k: pd.read_csv(f'sample_data/{k}.csv', parse_dates=['start','end'] if k=='sleep' else None)
+        for k in ['sleep','menstrual','wrist_temp','hrv','resting_hr','breathing']}
+print(CycleSleepAnalyzer(data).run().summary())
+"
+```
+
 ## Privacidad
 
-Los datos de salud estan en `.gitignore`. El repo solo contiene codigo. Ningun dato personal se sube.
+Los datos de salud estan en `.gitignore`. El repo solo contiene codigo y datos sinteticos de ejemplo. Ningun dato personal se sube.
 
 ## Licencia
 
