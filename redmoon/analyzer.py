@@ -274,3 +274,20 @@ class CycleSleepReport:
                 )
 
         return "\n".join(lines)
+
+    def to_json(self) -> dict:
+        """Export report as a JSON-serializable dictionary."""
+        phase_dist = {}
+        for p in self.phase_order:
+            n = len(self.data[self.data["phase"] == p])
+            phase_dist[p] = {"nights": n, "pct": round(n / self.n_nights * 100, 1)}
+
+        return {
+            "n_nights": self.n_nights,
+            "n_cycles": self.n_cycles,
+            "mean_cycle_length": round(self.mean_cycle_length, 1),
+            "phase_distribution": phase_dist,
+            "phase_means": self.phase_means().to_dict(orient="index"),
+            "statistical_tests": self.statistical_tests(),
+            "premenstrual_effect": self.premenstrual_effect(),
+        }
