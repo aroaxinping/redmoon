@@ -25,6 +25,134 @@ st.set_page_config(page_title="Cycle & Sleep", layout="wide", page_icon="🌙")
 _root = Path(__file__).parent
 DATA_DIR = _root / "data" if (_root / "data" / "sleep.csv").exists() else _root / "sample_data"
 
+# ---------------------------------------------------------------------------
+# Translations
+# ---------------------------------------------------------------------------
+# PHASE_ORDER keys ("Menstrual", "Folicular", "Ovulatoria", "Lútea") come from
+# redmoon.constants and stay as-is — they're used for real data grouping
+# elsewhere in the package. Only *display* labels are translated here.
+
+LANG = {
+    "English": {
+        "sidebar_title": "Cycle & Sleep",
+        "sidebar_subtitle": "Hormonal patterns in sleep quality",
+        "nights_analyzed": "Nights analyzed",
+        "complete_cycles": "Complete cycles",
+        "avg_cycle": "Avg. cycle",
+        "days": "days",
+        "view_label": "View",
+        "views": ["Summary", "Sleep by phase", "Biomarkers", "Premenstrual effect", "Time trend"],
+        "summary_title": "Cycle & Sleep: Hormonal Patterns in Sleep Quality",
+        "avg_sleep": "Avg. sleep",
+        "avg_efficiency": "Avg. efficiency",
+        "avg_hrv": "Avg. HRV",
+        "avg_resting_hr": "Avg. resting HR",
+        "stat_significance": "Statistical significance by metric",
+        "metric_col": "Metric",
+        "p_value_col": "p-value",
+        "result_col": "Result",
+        "significant": "Significant",
+        "not_significant": "Not significant",
+        "metric_labels": {
+            "total_sleep_min": "Duration", "pct_rem": "% REM", "pct_deep": "% Deep",
+            "efficiency": "Efficiency", "n_awakenings": "Awakenings",
+            "temp_c": "Temperature", "hrv_ms": "HRV", "resting_hr_bpm": "Resting HR",
+            "disturbances": "Breathing disturbances",
+        },
+        "key_findings_title": "Key findings",
+        "key_findings_md": (
+            "- **Temperature, HRV and Resting HR** show highly significant differences between phases\n"
+            "- **Sleep metrics** (duration, REM, Deep) don't change significantly between phases overall\n"
+            "- **Premenstrual effect**: more awakenings in the 5 days before the period"
+        ),
+        "sleep_by_phase_title": "Sleep metrics by cycle phase",
+        "metric_select": "Metric",
+        "sleep_metric_labels": {
+            "total_sleep_min": "Duration (min)", "pct_rem": "% REM", "pct_deep": "% Deep",
+            "efficiency": "Efficiency (%)", "n_awakenings": "Awakenings",
+        },
+        "cycle_position": "Cycle position",
+        "cycle_evolution": "Evolution across the cycle",
+        "biomarkers_title": "Physiological biomarkers by phase",
+        "biomarker_select": "Biomarker",
+        "biomarker_labels": {
+            "temp_c": "Wrist temperature (°C)", "hrv_ms": "HRV (ms)", "resting_hr_bpm": "Resting HR (bpm)",
+        },
+        "premenstrual_title": "Premenstrual effect: last 5 days before the period",
+        "premenstrual_metric_labels": {
+            "total_sleep_min": "Duration (min)", "n_awakenings": "Awakenings",
+            "pct_rem": "% REM", "efficiency": "Efficiency (%)",
+        },
+        "premenstrual_delta": "Pre: {late:.1f} vs Early: {early:.1f}",
+        "trend_title": "Sleep evolution over time",
+        "trend_metric_labels": {
+            "sleep": "Avg. duration (min)", "rem": "% REM", "deep": "% Deep", "awakenings": "Awakenings",
+        },
+        "monthly_avg": "Monthly average",
+        "trend_label": "Trend: {rate:.2f}/year",
+        "phase_labels": {"Menstrual": "Menstrual", "Folicular": "Follicular", "Ovulatoria": "Ovulatory", "Lútea": "Luteal"},
+    },
+    "Español": {
+        "sidebar_title": "Cycle & Sleep",
+        "sidebar_subtitle": "Analisis de patrones hormonales en la calidad del sueño",
+        "nights_analyzed": "Noches analizadas",
+        "complete_cycles": "Ciclos completos",
+        "avg_cycle": "Ciclo medio",
+        "days": "dias",
+        "view_label": "Vista",
+        "views": ["Resumen", "Sueño por fase", "Biomarcadores", "Efecto premenstrual", "Tendencia temporal"],
+        "summary_title": "Cycle & Sleep: Patrones Hormonales en la Calidad del Sueño",
+        "avg_sleep": "Sueño medio",
+        "avg_efficiency": "Eficiencia media",
+        "avg_hrv": "HRV medio",
+        "avg_resting_hr": "Resting HR medio",
+        "stat_significance": "Significancia estadistica por metrica",
+        "metric_col": "Metrica",
+        "p_value_col": "p-valor",
+        "result_col": "Resultado",
+        "significant": "Significativo",
+        "not_significant": "No significativo",
+        "metric_labels": {
+            "total_sleep_min": "Duracion", "pct_rem": "% REM", "pct_deep": "% Deep",
+            "efficiency": "Eficiencia", "n_awakenings": "Despertares",
+            "temp_c": "Temperatura", "hrv_ms": "HRV", "resting_hr_bpm": "Resting HR",
+            "disturbances": "Pert. respiratorias",
+        },
+        "key_findings_title": "Hallazgos principales",
+        "key_findings_md": (
+            "- **Temperatura, HRV y Resting HR** muestran diferencias altamente significativas entre fases\n"
+            "- **Las metricas de sueño** (duracion, REM, Deep) no cambian significativamente entre fases a nivel global\n"
+            "- **Efecto premenstrual**: mas despertares en los ultimos 5 dias antes del periodo"
+        ),
+        "sleep_by_phase_title": "Metricas de sueño por fase del ciclo",
+        "metric_select": "Metrica",
+        "sleep_metric_labels": {
+            "total_sleep_min": "Duracion (min)", "pct_rem": "% REM", "pct_deep": "% Deep",
+            "efficiency": "Eficiencia (%)", "n_awakenings": "Despertares",
+        },
+        "cycle_position": "Posicion en el ciclo",
+        "cycle_evolution": "Evolucion a lo largo del ciclo",
+        "biomarkers_title": "Biomarcadores fisiologicos por fase",
+        "biomarker_select": "Biomarcador",
+        "biomarker_labels": {
+            "temp_c": "Temperatura muneca (°C)", "hrv_ms": "HRV (ms)", "resting_hr_bpm": "Resting HR (bpm)",
+        },
+        "premenstrual_title": "Efecto premenstrual: ultimos 5 dias antes del periodo",
+        "premenstrual_metric_labels": {
+            "total_sleep_min": "Duracion (min)", "n_awakenings": "Despertares",
+            "pct_rem": "% REM", "efficiency": "Eficiencia (%)",
+        },
+        "premenstrual_delta": "Pre: {late:.1f} vs Temprana: {early:.1f}",
+        "trend_title": "Evolucion del sueño en el tiempo",
+        "trend_metric_labels": {
+            "sleep": "Duracion media (min)", "rem": "% REM", "deep": "% Deep", "awakenings": "Despertares",
+        },
+        "monthly_avg": "Media mensual",
+        "trend_label": "Tendencia: {rate:.2f}/ano",
+        "phase_labels": {"Menstrual": "Menstrual", "Folicular": "Folicular", "Ovulatoria": "Ovulatoria", "Lútea": "Lútea"},
+    },
+}
+
 
 @st.cache_data
 def load_and_process():
@@ -109,69 +237,64 @@ def kw_test(data, metric):
     return stats.kruskal(*valid)
 
 
+# --- Language selector ---
+lang_choice = st.sidebar.selectbox("Language / Idioma", ["English", "Español"])
+T = LANG[lang_choice]
+phase_display = [T["phase_labels"][p] for p in PHASE_ORDER]
+
 # --- Load data ---
 cs, periods = load_and_process()
 
 # --- Sidebar ---
-st.sidebar.title("Cycle & Sleep")
-st.sidebar.markdown("Analisis de patrones hormonales en la calidad del sueño")
+st.sidebar.title(T["sidebar_title"])
+st.sidebar.markdown(T["sidebar_subtitle"])
 st.sidebar.markdown("---")
-st.sidebar.metric("Noches analizadas", len(cs))
-st.sidebar.metric("Ciclos completos", len(periods) - 1)
+st.sidebar.metric(T["nights_analyzed"], len(cs))
+st.sidebar.metric(T["complete_cycles"], len(periods) - 1)
 valid_cycles = periods.dropna(subset=["cycle_length"])
-st.sidebar.metric("Ciclo medio", f"{valid_cycles['cycle_length'].mean():.0f} dias")
+st.sidebar.metric(T["avg_cycle"], f"{valid_cycles['cycle_length'].mean():.0f} {T['days']}")
 st.sidebar.markdown("---")
 
-view = st.sidebar.radio("Vista", [
-    "Resumen", "Sueño por fase", "Biomarcadores", "Efecto premenstrual", "Tendencia temporal"
-])
+view = st.sidebar.radio(T["view_label"], T["views"])
+views = T["views"]
 
 # --- Main content ---
-if view == "Resumen":
-    st.title("Cycle & Sleep: Patrones Hormonales en la Calidad del Sueno")
+if view == views[0]:  # Summary
+    st.title(T["summary_title"])
 
     col1, col2, col3, col4 = st.columns(4)
-    col1.metric("Sueno medio", f"{cs['total_sleep_min'].mean()/60:.1f}h")
-    col2.metric("Eficiencia media", f"{cs['efficiency'].mean():.0f}%")
-    col3.metric("HRV medio", f"{cs['hrv_ms'].mean():.0f} ms")
-    col4.metric("Resting HR medio", f"{cs['resting_hr_bpm'].mean():.0f} bpm")
+    col1.metric(T["avg_sleep"], f"{cs['total_sleep_min'].mean()/60:.1f}h")
+    col2.metric(T["avg_efficiency"], f"{cs['efficiency'].mean():.0f}%")
+    col3.metric(T["avg_hrv"], f"{cs['hrv_ms'].mean():.0f} ms")
+    col4.metric(T["avg_resting_hr"], f"{cs['resting_hr_bpm'].mean():.0f} bpm")
 
-    st.markdown("### Significancia estadistica por metrica")
+    st.markdown(f"### {T['stat_significance']}")
     metrics_all = ["total_sleep_min", "pct_rem", "pct_deep", "efficiency", "n_awakenings",
                    "temp_c", "hrv_ms", "resting_hr_bpm", "disturbances"]
-    labels = {"total_sleep_min": "Duracion", "pct_rem": "% REM", "pct_deep": "% Deep",
-              "efficiency": "Eficiencia", "n_awakenings": "Despertares",
-              "temp_c": "Temperatura", "hrv_ms": "HRV", "resting_hr_bpm": "Resting HR",
-              "disturbances": "Pert. respiratorias"}
 
     rows = []
     for m in metrics_all:
         stat, p = kw_test(cs, m)
         if stat is not None:
-            sig = "Significativo" if p < 0.05 else "No significativo"
-            rows.append({"Metrica": labels.get(m, m), "H": f"{stat:.1f}", "p-valor": f"{p:.6f}", "Resultado": sig})
-    st.dataframe(pd.DataFrame(rows), use_container_width=True, hide_index=True)
+            sig = T["significant"] if p < 0.05 else T["not_significant"]
+            rows.append({T["metric_col"]: T["metric_labels"].get(m, m), "H": f"{stat:.1f}",
+                         T["p_value_col"]: f"{p:.6f}", T["result_col"]: sig})
+    st.dataframe(pd.DataFrame(rows), width="stretch", hide_index=True)
 
-    st.markdown("""
-    ### Hallazgos principales
-    - **Temperatura, HRV y Resting HR** muestran diferencias altamente significativas entre fases
-    - **Las metricas de sueño** (duracion, REM, Deep) no cambian significativamente entre fases a nivel global
-    - **Efecto premenstrual**: mas despertares en los ultimos 5 dias antes del periodo
-    """)
+    st.markdown(f"### {T['key_findings_title']}")
+    st.markdown(T["key_findings_md"])
 
-elif view == "Sueño por fase":
-    st.title("Metricas de sueño por fase del ciclo")
+elif view == views[1]:  # Sleep by phase
+    st.title(T["sleep_by_phase_title"])
 
-    metric = st.selectbox("Metrica", ["total_sleep_min", "pct_rem", "pct_deep", "efficiency", "n_awakenings"],
-                          format_func=lambda x: {"total_sleep_min": "Duracion (min)", "pct_rem": "% REM",
-                                                  "pct_deep": "% Deep", "efficiency": "Eficiencia (%)",
-                                                  "n_awakenings": "Despertares"}[x])
+    metric = st.selectbox(T["metric_select"], list(T["sleep_metric_labels"].keys()),
+                          format_func=lambda x: T["sleep_metric_labels"][x])
 
     col1, col2 = st.columns(2)
     with col1:
         fig, ax = plt.subplots(figsize=(8, 5))
         data = [cs[cs["phase"] == p][metric].dropna() for p in PHASE_ORDER]
-        bp = ax.boxplot(data, tick_labels=PHASE_ORDER, patch_artist=True, widths=0.6)
+        bp = ax.boxplot(data, tick_labels=phase_display, patch_artist=True, widths=0.6)
         for patch, phase in zip(bp["boxes"], PHASE_ORDER):
             patch.set_facecolor(PHASE_COLORS[phase])
             patch.set_alpha(0.6)
@@ -192,21 +315,21 @@ elif view == "Sueño por fase":
         ax.plot(bc, binned["mean"], "o-", color="steelblue", linewidth=2, markersize=4)
         ax.axvspan(0, 0.18, alpha=0.08, color="red")
         ax.axvspan(0.57, 1.0, alpha=0.08, color="orange")
-        ax.set_xlabel("Posicion en el ciclo")
-        ax.set_title("Evolucion a lo largo del ciclo")
+        ax.set_xlabel(T["cycle_position"])
+        ax.set_title(T["cycle_evolution"])
         st.pyplot(fig)
 
     # Summary table
     summary = cs.groupby("phase")[metric].agg(["mean", "std", "median", "count"]).round(2)
     summary = summary.reindex(PHASE_ORDER)
-    st.dataframe(summary, use_container_width=True)
+    summary.index = phase_display
+    st.dataframe(summary, width="stretch")
 
-elif view == "Biomarcadores":
-    st.title("Biomarcadores fisiologicos por fase")
+elif view == views[2]:  # Biomarkers
+    st.title(T["biomarkers_title"])
 
-    bio = st.selectbox("Biomarcador", ["temp_c", "hrv_ms", "resting_hr_bpm"],
-                       format_func=lambda x: {"temp_c": "Temperatura muneca (C)", "hrv_ms": "HRV (ms)",
-                                               "resting_hr_bpm": "Resting HR (bpm)"}[x])
+    bio = st.selectbox(T["biomarker_select"], list(T["biomarker_labels"].keys()),
+                       format_func=lambda x: T["biomarker_labels"][x])
 
     bio_data = cs.dropna(subset=[bio])
     col1, col2 = st.columns(2)
@@ -214,7 +337,7 @@ elif view == "Biomarcadores":
     with col1:
         fig, ax = plt.subplots(figsize=(8, 5))
         data = [bio_data[bio_data["phase"] == p][bio].dropna() for p in PHASE_ORDER]
-        bp = ax.boxplot(data, tick_labels=PHASE_ORDER, patch_artist=True, widths=0.6)
+        bp = ax.boxplot(data, tick_labels=phase_display, patch_artist=True, widths=0.6)
         for patch, phase in zip(bp["boxes"], PHASE_ORDER):
             patch.set_facecolor(PHASE_COLORS[phase])
             patch.set_alpha(0.6)
@@ -234,31 +357,31 @@ elif view == "Biomarcadores":
         ax.plot(bc, binned["mean"], "o-", color="indianred", linewidth=2, markersize=4)
         ax.axvspan(0, 0.18, alpha=0.08, color="red")
         ax.axvspan(0.57, 1.0, alpha=0.08, color="orange")
-        ax.set_xlabel("Posicion en el ciclo")
-        ax.set_title("Evolucion a lo largo del ciclo")
+        ax.set_xlabel(T["cycle_position"])
+        ax.set_title(T["cycle_evolution"])
         st.pyplot(fig)
 
     summary = bio_data.groupby("phase")[bio].agg(["mean", "std", "count"]).round(3)
     summary = summary.reindex(PHASE_ORDER)
-    st.dataframe(summary, use_container_width=True)
+    summary.index = phase_display
+    st.dataframe(summary, width="stretch")
 
-elif view == "Efecto premenstrual":
-    st.title("Efecto premenstrual: ultimos 5 dias antes del periodo")
+elif view == views[3]:  # Premenstrual effect
+    st.title(T["premenstrual_title"])
 
     luteal = cs[cs["phase"] == "Lútea"].copy()
     luteal["days_to_period"] = luteal["cycle_length"] - luteal["cycle_day"]
-    luteal["sub"] = np.where(luteal["days_to_period"] <= 5, "Premenstrual", "Lutea temprana")
+    luteal["sub"] = np.where(luteal["days_to_period"] <= 5, "late", "early")
 
-    for metric, label in [("total_sleep_min", "Duracion (min)"), ("n_awakenings", "Despertares"),
-                          ("pct_rem", "% REM"), ("efficiency", "Eficiencia (%)")]:
-        early = luteal[luteal["sub"] == "Lutea temprana"][metric].dropna()
-        late = luteal[luteal["sub"] == "Premenstrual"][metric].dropna()
+    for metric, label in T["premenstrual_metric_labels"].items():
+        early = luteal[luteal["sub"] == "early"][metric].dropna()
+        late = luteal[luteal["sub"] == "late"][metric].dropna()
         u, p = stats.mannwhitneyu(early, late, alternative="two-sided")
         sig = " *" if p < 0.05 else ""
-        st.metric(f"{label}{sig}", f"Pre: {late.mean():.1f} vs Early: {early.mean():.1f}", f"p={p:.4f}")
+        st.metric(f"{label}{sig}", T["premenstrual_delta"].format(late=late.mean(), early=early.mean()), f"p={p:.4f}")
 
-elif view == "Tendencia temporal":
-    st.title("Evolucion del sueño en el tiempo")
+elif view == views[4]:  # Time trend
+    st.title(T["trend_title"])
 
     monthly = cs.copy()
     monthly["month"] = monthly["night_date"].dt.to_period("M")
@@ -270,9 +393,8 @@ elif view == "Tendencia temporal":
     agg["month_dt"] = agg["month"].dt.to_timestamp()
     agg = agg[agg["n"] >= 10]
 
-    metric = st.selectbox("Metrica", ["sleep", "rem", "deep", "awakenings"],
-                          format_func=lambda x: {"sleep": "Duracion media (min)", "rem": "% REM",
-                                                  "deep": "% Deep", "awakenings": "Despertares"}[x])
+    metric = st.selectbox(T["metric_select"], list(T["trend_metric_labels"].keys()),
+                          format_func=lambda x: T["trend_metric_labels"][x])
 
     fig, ax = plt.subplots(figsize=(14, 5))
     ax.plot(agg["month_dt"], agg[metric], "o-", markersize=3, alpha=0.7, color="steelblue")
@@ -281,8 +403,8 @@ elif view == "Tendencia temporal":
     if valid.sum() > 5:
         z = np.polyfit(x_num[valid], agg[metric].values[valid], 1)
         ax.plot(agg["month_dt"], np.polyval(z, x_num), "--", color="red", alpha=0.7,
-                label=f"Tendencia: {z[0]*365:.2f}/ano")
+                label=T["trend_label"].format(rate=z[0]*365))
         ax.legend()
-    ax.set_title("Media mensual")
+    ax.set_title(T["monthly_avg"])
     ax.tick_params(axis="x", rotation=30)
     st.pyplot(fig)
