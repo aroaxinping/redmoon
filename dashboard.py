@@ -114,7 +114,7 @@ cs, periods = load_and_process()
 
 # --- Sidebar ---
 st.sidebar.title("Cycle & Sleep")
-st.sidebar.markdown("Analisis de patrones hormonales en la calidad del sueno")
+st.sidebar.markdown("Analisis de patrones hormonales en la calidad del sueño")
 st.sidebar.markdown("---")
 st.sidebar.metric("Noches analizadas", len(cs))
 st.sidebar.metric("Ciclos completos", len(periods) - 1)
@@ -123,7 +123,7 @@ st.sidebar.metric("Ciclo medio", f"{valid_cycles['cycle_length'].mean():.0f} dia
 st.sidebar.markdown("---")
 
 view = st.sidebar.radio("Vista", [
-    "Resumen", "Sueno por fase", "Biomarcadores", "Efecto premenstrual", "Tendencia temporal"
+    "Resumen", "Sueño por fase", "Biomarcadores", "Efecto premenstrual", "Tendencia temporal"
 ])
 
 # --- Main content ---
@@ -155,12 +155,12 @@ if view == "Resumen":
     st.markdown("""
     ### Hallazgos principales
     - **Temperatura, HRV y Resting HR** muestran diferencias altamente significativas entre fases
-    - **Las metricas de sueno** (duracion, REM, Deep) no cambian significativamente entre fases a nivel global
+    - **Las metricas de sueño** (duracion, REM, Deep) no cambian significativamente entre fases a nivel global
     - **Efecto premenstrual**: mas despertares en los ultimos 5 dias antes del periodo
     """)
 
-elif view == "Sueno por fase":
-    st.title("Metricas de sueno por fase del ciclo")
+elif view == "Sueño por fase":
+    st.title("Metricas de sueño por fase del ciclo")
 
     metric = st.selectbox("Metrica", ["total_sleep_min", "pct_rem", "pct_deep", "efficiency", "n_awakenings"],
                           format_func=lambda x: {"total_sleep_min": "Duracion (min)", "pct_rem": "% REM",
@@ -258,7 +258,7 @@ elif view == "Efecto premenstrual":
         st.metric(f"{label}{sig}", f"Pre: {late.mean():.1f} vs Early: {early.mean():.1f}", f"p={p:.4f}")
 
 elif view == "Tendencia temporal":
-    st.title("Evolucion del sueno en el tiempo")
+    st.title("Evolucion del sueño en el tiempo")
 
     monthly = cs.copy()
     monthly["month"] = monthly["night_date"].dt.to_period("M")
