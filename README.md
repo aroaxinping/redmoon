@@ -5,23 +5,23 @@
 [![Python](https://img.shields.io/pypi/pyversions/redmoon)](https://pypi.org/project/redmoon/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Herramienta de analisis que cruza datos del ciclo menstrual con metricas de sueño, HRV y frecuencia cardiaca a partir de tu exportacion de Apple Health.
+Analysis tool that cross-references menstrual cycle data with sleep metrics, HRV and heart rate from your Apple Health export.
 
-Una sola linea y obtienes un informe con tests estadisticos, correlaciones y deteccion de patrones hormonales en tu sueño.
+One line and you get a report with statistical tests, correlations and hormonal pattern detection in your sleep.
 
 ```bash
 pip install redmoon
-redmoon analyze exportacion.xml
+redmoon analyze export.xml
 ```
 
-No tienes datos de Apple Health? El repo incluye **datos sinteticos de ejemplo** para probar todo sin necesitar un iPhone:
+Don't have Apple Health data? The repo includes **synthetic sample data** so you can try everything without an iPhone:
 
 ```bash
 git clone https://github.com/aroaxinping/redmoon.git
 cd redmoon
 pip install -e ".[all]"
 pytest tests/ -v          # 48 tests
-redmoon dashboard         # abre el dashboard con datos de ejemplo
+redmoon dashboard         # opens the dashboard with sample data
 ```
 
 ---
@@ -29,214 +29,216 @@ redmoon dashboard         # abre el dashboard con datos de ejemplo
 ## Dashboard
 
 <p align="center">
-<img src="docs/screenshots/01_resumen.png" alt="Significancia estadistica por metrica" width="700">
+<img src="docs/screenshots/01_resumen.png" alt="Statistical significance by metric" width="700">
 </p>
 
 <p align="center">
-<img src="docs/screenshots/02_sueno_por_fase.png" alt="Sueño por fase del ciclo" width="700">
+<img src="docs/screenshots/02_sueno_por_fase.png" alt="Sleep by cycle phase" width="700">
 </p>
 
 <p align="center">
-<img src="docs/screenshots/03_biomarcadores.png" alt="Biomarcadores fisiologicos por fase" width="700">
+<img src="docs/screenshots/03_biomarcadores.png" alt="Physiological biomarkers by phase" width="700">
 </p>
 
 <p align="center">
-<img src="docs/screenshots/04_efecto_premenstrual.png" alt="Efecto premenstrual" width="700">
+<img src="docs/screenshots/04_efecto_premenstrual.png" alt="Premenstrual effect" width="700">
 </p>
 
 <p align="center">
-<img src="docs/screenshots/05_tendencia_temporal.png" alt="Tendencia temporal" width="700">
+<img src="docs/screenshots/05_tendencia_temporal.png" alt="Time trend" width="700">
 </p>
 
 ---
 
-## Que encuentra redmoon
+## What redmoon finds
 
-Resultados reales con ~6 anos de datos de Apple Health (76 ciclos, 1,153 noches):
+Real results from ~6 years of Apple Health data (76 cycles, 1,153 nights):
 
-| Metrica | Cambia con el ciclo? | Detalle |
+| Metric | Changes with the cycle? | Detail |
 |---|---|---|
-| Temperatura de muneca | Si (p < 0.000001) | +0.375 C en fase lutea vs folicular |
-| HRV | Si (p < 0.000001) | -3ms en fase lutea |
-| Frecuencia cardiaca en reposo | Si (p < 0.000001) | +2bpm en fase lutea |
-| Despertares premenstruales | Si (p = 0.034) | +1.1 despertares/noche los ultimos 5 dias |
-| Duracion del sueño | No (p = 0.28) | Sin diferencia entre fases |
-| % REM / % Deep | No (p > 0.7) | Sin diferencia entre fases |
-| Eficiencia del sueño | No (p = 0.21) | Sin diferencia entre fases |
+| Wrist temperature | Yes (p < 0.000001) | +0.375 °C in luteal vs follicular phase |
+| HRV | Yes (p < 0.000001) | -3ms in luteal phase |
+| Resting heart rate | Yes (p < 0.000001) | +2bpm in luteal phase |
+| Premenstrual awakenings | Yes (p = 0.034) | +1.1 awakenings/night in the last 5 days |
+| Sleep duration | No (p = 0.28) | No difference between phases |
+| % REM / % Deep | No (p > 0.7) | No difference between phases |
+| Sleep efficiency | No (p = 0.21) | No difference between phases |
 
-**Conclusion**: las hormonas cambian tu fisiologia nocturna de forma muy clara (temperatura, HRV, frecuencia cardiaca), pero el sueño en si solo se ve afectado justo antes del periodo, con mas despertares.
+**Conclusion**: hormones change your nighttime physiology very clearly (temperature, HRV, heart rate), but sleep itself is only affected right before the period, with more awakenings.
 
-¿Como se compara esto con estudios publicados, y que tan fiable es el Apple Watch como
-instrumento? Analisis honesto, hallazgo por hallazgo, en [RESEARCH.md](RESEARCH.md).
+How does this compare to published studies, and how reliable is the Apple Watch as an
+instrument? Honest, finding-by-finding analysis in [RESEARCH.md](RESEARCH.md).
 
 ---
 
-## Como usar redmoon con tus datos
+## How to use redmoon with your own data
 
-### 1. Exportar datos de Apple Health
+### 1. Export Apple Health data
 
-En tu iPhone: Salud → foto de perfil → Exportar datos de salud → te genera un zip con `exportacion.xml`.
+On your iPhone: Health → profile picture → Export Health Data → generates a zip with `export.xml`.
 
-### 2. Instalar
+### 2. Install
 
 ```bash
 pip install redmoon
 ```
 
-Con extras opcionales:
+With optional extras:
 
 ```bash
-pip install redmoon[all]    # incluye visualizaciones, ML y dashboard
-pip install redmoon[viz]    # solo matplotlib + seaborn
-pip install redmoon[ml]     # solo scikit-learn
+pip install redmoon[all]    # includes visualizations, ML and dashboard
+pip install redmoon[viz]    # matplotlib + seaborn only
+pip install redmoon[ml]     # scikit-learn only
 ```
 
-### 3. Ejecutar analisis
+### 3. Run the analysis
 
-**Desde terminal:**
+**From the terminal:**
 
 ```bash
-# Analisis completo con report en consola
-redmoon analyze exportacion.xml
+# Full analysis with console report
+redmoon analyze export.xml
 
-# Guardar report a archivo + CSVs intermedios
-redmoon analyze exportacion.xml --output report.txt --csv-dir data/
+# Save report to file + intermediate CSVs
+redmoon analyze export.xml --output report.txt --csv-dir data/
 
-# Exportar como JSON (para integraciones o procesado posterior)
-redmoon analyze exportacion.xml --json --output report.json
+# Export as JSON (for integrations or downstream processing)
+redmoon analyze export.xml --json --output report.json
 
-# Modo verbose para ver logs detallados
-redmoon -v analyze exportacion.xml
+# Verbose mode for detailed logs
+redmoon -v analyze export.xml
 ```
 
-**Como libreria Python:**
+**As a Python library:**
 
 ```python
 from redmoon import parse_export, CycleSleepAnalyzer
 
-data = parse_export("exportacion.xml")
+data = parse_export("export.xml")
 analyzer = CycleSleepAnalyzer(data)
 report = analyzer.run()
 
-# Report completo en texto
+# Full text report
 print(report.summary())
 
-# Medias por fase como DataFrame
+# Phase means as a DataFrame
 report.phase_means()
 
-# Tests estadisticos
+# Statistical tests
 report.statistical_tests()
 
-# Efecto premenstrual
+# Premenstrual effect
 report.premenstrual_effect()
 
-# Exportar como diccionario JSON-serializable
+# Export as a JSON-serializable dict
 report.to_json()
 ```
 
-### 4. Dashboard interactivo (opcional)
+### 4. Interactive dashboard (optional)
 
 ```bash
 pip install redmoon[all]
 redmoon dashboard
 ```
 
-5 vistas: resumen, sueño por fase, biomarcadores, efecto premenstrual, tendencia temporal.
+6 views: summary, sleep by phase, biomarkers, premenstrual effect, time trend, related research.
 
-Si no tienes datos propios en `data/`, el dashboard usa automaticamente los datos sinteticos de `sample_data/`.
+If you don't have your own data in `data/`, the dashboard automatically falls back to the synthetic data in `sample_data/`.
 
-### 5. Notebook de analisis (opcional)
+### 5. Analysis notebook (optional)
 
 ```bash
 jupyter notebook notebooks/analysis.ipynb
 ```
 
-16 secciones con visualizaciones completas, tests estadisticos, prediccion ML, y correlaciones.
+16 sections with full visualizations, statistical tests, ML prediction, and correlations.
 
 ---
 
-## Que datos necesitas
+## What data you need
 
-redmoon extrae automaticamente del XML de Apple Health:
+redmoon automatically extracts from the Apple Health XML export:
 
-| Dato | Fuente | Registros tipicos |
+| Data | Source | Typical records |
 |---|---|---|
-| Fases de sueño (Core, REM, Deep, Awake) | Apple Watch | Miles |
-| Flujo menstrual | App Salud / tracker | Cientos |
-| Temperatura de muneca nocturna | Apple Watch Ultra / Series 8+ | Cientos |
-| HRV (SDNN) | Apple Watch | Miles |
-| Frecuencia cardiaca en reposo | Apple Watch | Miles |
-| Perturbaciones respiratorias | Apple Watch | Cientos |
+| Sleep stages (Core, REM, Deep, Awake) | Apple Watch | Thousands |
+| Menstrual flow | Health app / tracker | Hundreds |
+| Nightly wrist temperature | Apple Watch Ultra / Series 8+ | Hundreds |
+| HRV (SDNN) | Apple Watch | Thousands |
+| Resting heart rate | Apple Watch | Thousands |
+| Breathing disturbances | Apple Watch | Hundreds |
 
-No necesitas todos. El minimo es **sueño + periodo**. Los biomarcadores (temperatura, HRV, HR) enriquecen el analisis pero son opcionales.
+You don't need all of them. The minimum is **sleep + period**. Biomarkers (temperature, HRV, HR) enrich the analysis but are optional.
 
 ---
 
-## Metodologia
+## Methodology
 
-### Agregacion nocturna
+### Nightly aggregation
 
-Cada noche se asigna a la fecha en que empieza el sueño. Si te duermes a las 2:00, esa noche cuenta como el dia anterior. Se filtran noches con <2h de sueño o >16h en cama.
+Each night is assigned to the date sleep started. If you fall asleep at 2:00 AM, that night counts as the previous day. Nights with <2h of sleep or >16h in bed are filtered out.
 
-### Deteccion de ciclos
+### Cycle detection
 
-Los dias de sangrado consecutivos se agrupan en periodos. Un nuevo periodo empieza cuando hay >5 dias sin sangrado. Ciclos de <21 o >45 dias se excluyen.
+Consecutive bleeding days are grouped into periods. A new period starts when there are >5 days without bleeding. Cycles shorter than 21 or longer than 45 days are excluded.
 
-### Asignacion de fases
+### Phase assignment
 
-Cada ciclo se divide en 4 fases proporcionalmente a su duracion real:
+Each cycle is split into 4 phases proportionally to its actual length:
 
-| Fase | Dias tipicos | Que pasa hormonalmente |
+| Phase | Typical days | What happens hormonally |
 |---|---|---|
-| **Menstrual** | 1-5 | Estrogeno y progesterona en minimo. Sangrado. Fatiga. |
-| **Folicular** | 6-13 | Estrogeno sube. Mas energia y claridad mental. |
-| **Ovulatoria** | 14-16 | Pico de estrogeno y LH. Liberacion del ovulo. Temperatura empieza a subir. |
-| **Lutea** | 17-28+ | Progesterona alta. Temperatura +0.3-0.5 C. Al final, caida hormonal → PMS. |
+| **Menstrual** | 1-5 | Estrogen and progesterone at their lowest. Bleeding. Fatigue. |
+| **Follicular** | 6-13 | Estrogen rises. More energy and mental clarity. |
+| **Ovulatory** | 14-16 | Estrogen and LH peak. Egg release. Temperature starts rising. |
+| **Luteal** | 17-28+ | High progesterone. Temperature +0.3-0.5 °C. Hormonal drop at the end → PMS. |
 
-La fase lutea se subdivide en **lutea temprana** y **premenstrual** (ultimos 5 dias) para aislar el efecto PMS.
+The luteal phase is split into **early luteal** and **premenstrual** (last 5 days) to isolate the PMS effect.
 
-### Tests estadisticos
+*Internally, the code stores these phases with their Spanish names (Menstrual, Folicular, Ovulatoria, Lútea) as the real grouping keys — only display labels are translated where relevant (e.g. in the dashboard's language switcher).*
 
-- **Kruskal-Wallis**: test no parametrico para comparar las 4 fases
-- **Mann-Whitney U con correccion de Bonferroni**: comparaciones post-hoc por pares
-- **Spearman**: correlaciones entre metricas
-- **Random Forest**: prediccion de fase lutea vs no-lutea (F1 = 0.73 con temperatura + HRV + HR,
-  validado con `StratifiedGroupKFold` agrupando por ciclo — ver [RESEARCH.md](RESEARCH.md#5-prediccion-de-fase-con-random-forest)
-  para por que el numero naive daba 0.79 y por que ese numero era optimista)
+### Statistical tests
 
-### Limpieza de outliers
+- **Kruskal-Wallis**: non-parametric test to compare the 4 phases
+- **Mann-Whitney U with Bonferroni correction**: pairwise post-hoc comparisons
+- **Spearman**: correlations between metrics
+- **Random Forest**: luteal vs non-luteal phase prediction (F1 = 0.73 with temperature + HRV + HR,
+  validated with `StratifiedGroupKFold` grouping by cycle — see [RESEARCH.md](RESEARCH.md#5-phase-prediction-with-random-forest)
+  for why the naive number was 0.79 and why that number was overly optimistic)
 
-- **Eficiencia > 100%**: Apple Health puede registrar InBed desde el iPhone y las fases desde el Watch, causando inconsistencias. Se usa `max(InBed, sleep+awake)` como denominador y se capea al 100%.
-- **Ciclos anormales**: <21 o >45 dias se excluyen.
-- **Noches pre-2020**: solo tienen InBed sin desglose en fases (el Watch no lo soportaba).
+### Outlier cleaning
+
+- **Efficiency > 100%**: Apple Health can log InBed from the iPhone and sleep stages from the Watch, causing inconsistencies. `max(InBed, sleep+awake)` is used as the denominator and capped at 100%.
+- **Abnormal cycles**: <21 or >45 days are excluded.
+- **Pre-2020 nights**: only have InBed with no stage breakdown (the Watch didn't support it yet).
 
 ---
 
-## Estructura del proyecto
+## Project structure
 
 ```
 redmoon/
-├── redmoon/               # Paquete Python (PyPI)
+├── redmoon/               # Python package (PyPI)
 │   ├── __init__.py        #   Exports: parse_export, CycleSleepAnalyzer
 │   ├── parser.py          #   XML → DataFrames
-│   ├── analyzer.py        #   Analisis + report + JSON export
-│   ├── constants.py       #   Constantes, umbrales y logica de fases
+│   ├── analyzer.py        #   Analysis + report + JSON export
+│   ├── constants.py       #   Constants, thresholds and phase logic
 │   └── cli.py             #   CLI: redmoon analyze / redmoon dashboard
-├── tests/                 # Tests (pytest, 48 tests)
-│   ├── test_parser.py     #   Parser: tipos, columnas, validacion, edge cases
+├── tests/                 # Tests (pytest, 49 tests)
+│   ├── test_parser.py     #   Parser: types, columns, validation, edge cases
 │   ├── test_analyzer.py   #   Analyzer: pipeline, report, JSON serialization
-│   └── test_constants.py  #   Asignacion de fases, ciclos limite (21/45d)
-├── sample_data/           # Datos sinteticos (3 ciclos, ~85 noches)
+│   └── test_constants.py  #   Phase assignment, boundary cycles (21/45d)
+├── sample_data/           # Synthetic data (3 cycles, ~85 nights)
 ├── notebooks/
-│   └── analysis.ipynb     # Analisis completo con graficas
-├── dashboard.py           # Dashboard Streamlit (5 vistas)
-├── .github/workflows/     # CI: tests en Python 3.9-3.12
-├── data/                  # (gitignored) tus datos privados
+│   └── analysis.ipynb     # Full analysis with charts
+├── dashboard.py           # Streamlit dashboard (6 views)
+├── .github/workflows/     # CI: tests on Python 3.9-3.12
+├── data/                  # (gitignored) your private data
 ├── pyproject.toml
 └── LICENSE                # MIT
 ```
 
-## Desarrollo local
+## Local development
 
 ```bash
 git clone https://github.com/aroaxinping/redmoon.git
@@ -246,10 +248,10 @@ pip install pytest
 ```
 
 ```bash
-# Ejecutar tests
+# Run tests
 pytest tests/ -v
 
-# Probar con datos de ejemplo
+# Try it with sample data
 python -c "
 import pandas as pd
 from redmoon import CycleSleepAnalyzer
@@ -265,10 +267,10 @@ print(CycleSleepAnalyzer(data).run().summary())
 "
 ```
 
-## Privacidad
+## Privacy
 
-Los datos de salud estan en `.gitignore`. El repo solo contiene codigo y datos sinteticos de ejemplo. Ningun dato personal se sube.
+Health data is in `.gitignore`. The repo only contains code and synthetic sample data. No personal data is ever uploaded.
 
-## Licencia
+## License
 
 MIT
