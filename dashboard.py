@@ -12,6 +12,8 @@ import seaborn as sns
 from scipy import stats
 from datetime import timedelta
 from pathlib import Path
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import StratifiedKFold, StratifiedGroupKFold, cross_val_score
 
 from redmoon.constants import (
     PHASE_ORDER, PHASE_COLORS, METRIC_LABELS,
@@ -41,7 +43,7 @@ LANG = {
         "avg_cycle": "Avg. cycle",
         "days": "days",
         "view_label": "View",
-        "views": ["Summary", "Sleep by phase", "Biomarkers", "Premenstrual effect", "Time trend"],
+        "views": ["Summary", "Sleep by phase", "Biomarkers", "Premenstrual effect", "Time trend", "Related research"],
         "summary_title": "Cycle & Sleep: Hormonal Patterns in Sleep Quality",
         "avg_sleep": "Avg. sleep",
         "avg_efficiency": "Avg. efficiency",
@@ -91,6 +93,35 @@ LANG = {
         "monthly_avg": "Monthly average",
         "trend_label": "Trend: {rate:.2f}/year",
         "phase_labels": {"Menstrual": "Menstrual", "Folicular": "Follicular", "Ovulatoria": "Ovulatory", "Lútea": "Luteal"},
+        "research_intro": (
+            "This project is N=1, self-tracked, with no hormone-confirmed phase. "
+            "Before trusting my own conclusions, I checked them against peer-reviewed "
+            "studies and against my own validation methodology. Full write-up in "
+            "[RESEARCH.md](https://github.com/aroaxinping/redmoon/blob/main/RESEARCH.md)."
+        ),
+        "research_leakage_title": "Data leakage I found and fixed in my own ML model",
+        "research_leakage_caption": (
+            "My Random Forest (luteal vs non-luteal) was validated with `StratifiedKFold`, which "
+            "splits individual nights at random — nights from the same cycle could land in both "
+            "train and test, so the model was partly recognising a cycle it had already seen. "
+            "Fixed with `StratifiedGroupKFold`, grouping by real cycle. The honest F1 is **0.73**, "
+            "not the 0.79 originally published."
+        ),
+        "research_temp_title": "Wrist temperature in luteal phase vs a published study",
+        "research_temp_caption": (
+            "My +0.375°C is close to the +0.33°C reported by Shilaih et al. (2018, *Bioscience "
+            "Reports*, 136 participants / 437 cycles, P<0.001) — same direction, same order of "
+            "magnitude, despite my sample being one person tracked for years instead of a cohort."
+        ),
+        "research_sources_title": "Sources used",
+        "research_sources_md": (
+            "- Shilaih et al. (2018). [Modern fertility awareness methods: wrist wearables capture temperature changes](https://pmc.ncbi.nlm.nih.gov/articles/PMC6265623/). *Bioscience Reports*.\n"
+            "- Schmalenberger et al. (2020). [Menstrual Cycle Changes in Vagally-Mediated HRV Are Associated with Progesterone](https://pmc.ncbi.nlm.nih.gov/articles/PMC7141121/). *J Clin Med*.\n"
+            "- Alzueta et al. (2022). [Tracking Sleep, Temperature, Heart Rate and Daily Symptoms with the Oura Ring](https://pubmed.ncbi.nlm.nih.gov/35422659/). *Int J Women's Health*.\n"
+            "- Lin et al. (2024). [Understanding wrist skin temperature changes to hormone variations](https://pubmed.ncbi.nlm.nih.gov/39372385/). *npj Women's Health*.\n"
+            "- [Machine learning-based menstrual phase identification using wearable device data](https://www.nature.com/articles/s44294-025-00078-8) (2025). *npj Women's Health*.\n"
+            "- [The Validity of Apple Watch Series 9 and Ultra 2 for HRV](https://pmc.ncbi.nlm.nih.gov/articles/PMC11478500/) (2024)."
+        ),
     },
     "Español": {
         "sidebar_title": "Cycle & Sleep",
@@ -100,7 +131,7 @@ LANG = {
         "avg_cycle": "Ciclo medio",
         "days": "dias",
         "view_label": "Vista",
-        "views": ["Resumen", "Sueño por fase", "Biomarcadores", "Efecto premenstrual", "Tendencia temporal"],
+        "views": ["Resumen", "Sueño por fase", "Biomarcadores", "Efecto premenstrual", "Tendencia temporal", "Investigacion relacionada"],
         "summary_title": "Cycle & Sleep: Patrones Hormonales en la Calidad del Sueño",
         "avg_sleep": "Sueño medio",
         "avg_efficiency": "Eficiencia media",
@@ -150,6 +181,36 @@ LANG = {
         "monthly_avg": "Media mensual",
         "trend_label": "Tendencia: {rate:.2f}/ano",
         "phase_labels": {"Menstrual": "Menstrual", "Folicular": "Folicular", "Ovulatoria": "Ovulatoria", "Lútea": "Lútea"},
+        "research_intro": (
+            "Este proyecto es N=1, autoseguimiento, sin fase confirmada por hormona. Antes de "
+            "fiarme de mis propias conclusiones, las contraste con estudios revisados por pares "
+            "y con mi propia metodologia de validacion. Analisis completo en "
+            "[RESEARCH.md](https://github.com/aroaxinping/redmoon/blob/main/RESEARCH.md)."
+        ),
+        "research_leakage_title": "Fuga de datos que encontre y arregle en mi propio modelo de ML",
+        "research_leakage_caption": (
+            "Mi Random Forest (lutea vs no-lutea) se validaba con `StratifiedKFold`, que reparte "
+            "noches individuales al azar — noches del mismo ciclo podian caer a la vez en train y "
+            "test, asi que el modelo reconocia en parte un ciclo que ya habia visto. Arreglado con "
+            "`StratifiedGroupKFold`, agrupando por ciclo real. El F1 honesto es **0.73**, no el "
+            "0.79 publicado originalmente."
+        ),
+        "research_temp_title": "Temperatura de muneca en fase lutea vs un estudio publicado",
+        "research_temp_caption": (
+            "Mi +0.375°C esta cerca del +0.33°C que reportan Shilaih et al. (2018, *Bioscience "
+            "Reports*, 136 participantes / 437 ciclos, P<0.001) — misma direccion, mismo orden de "
+            "magnitud, aunque mi muestra sea una sola persona seguida durante anos en vez de una "
+            "cohorte."
+        ),
+        "research_sources_title": "Fuentes utilizadas",
+        "research_sources_md": (
+            "- Shilaih et al. (2018). [Modern fertility awareness methods: wrist wearables capture temperature changes](https://pmc.ncbi.nlm.nih.gov/articles/PMC6265623/). *Bioscience Reports*.\n"
+            "- Schmalenberger et al. (2020). [Menstrual Cycle Changes in Vagally-Mediated HRV Are Associated with Progesterone](https://pmc.ncbi.nlm.nih.gov/articles/PMC7141121/). *J Clin Med*.\n"
+            "- Alzueta et al. (2022). [Tracking Sleep, Temperature, Heart Rate and Daily Symptoms with the Oura Ring](https://pubmed.ncbi.nlm.nih.gov/35422659/). *Int J Women's Health*.\n"
+            "- Lin et al. (2024). [Understanding wrist skin temperature changes to hormone variations](https://pubmed.ncbi.nlm.nih.gov/39372385/). *npj Women's Health*.\n"
+            "- [Machine learning-based menstrual phase identification using wearable device data](https://www.nature.com/articles/s44294-025-00078-8) (2025). *npj Women's Health*.\n"
+            "- [The Validity of Apple Watch Series 9 and Ultra 2 for HRV](https://pmc.ncbi.nlm.nih.gov/articles/PMC11478500/) (2024)."
+        ),
     },
 }
 
@@ -211,6 +272,11 @@ def load_and_process():
     nightly_df["cycle_day"] = phases.apply(lambda x: x[1])
     nightly_df["cycle_length"] = phases.apply(lambda x: x[2])
 
+    # Same period index assign_phase() used to find the match — needed as a
+    # group key so nights from one cycle never split across train/test in CV.
+    period_bins = periods["start"].tolist() + [pd.Timestamp.max]
+    nightly_df["cycle_id"] = pd.cut(nightly_df["night_date"], bins=period_bins, labels=False, right=False)
+
     cs = nightly_df.dropna(subset=["phase"]).copy()
     cs = cs[(cs["cycle_length"] >= MIN_CYCLE_DAYS) & (cs["cycle_length"] <= MAX_CYCLE_DAYS)]
 
@@ -235,6 +301,29 @@ def kw_test(data, metric):
     if len(valid) < 2:
         return None, None
     return stats.kruskal(*valid)
+
+
+@st.cache_data
+def compute_f1_leakage_comparison(cs):
+    """Naive row-level CV vs group-aware CV for the luteal/non-luteal classifier.
+    See RESEARCH.md section 5 for why the naive number is optimistic."""
+    pred_cols = ["temp_c", "hrv_ms", "resting_hr_bpm"]
+    pred_data = cs.dropna(subset=pred_cols + ["phase", "cycle_id"])
+    if len(pred_data) < 100:
+        return None, None
+
+    X = pred_data[pred_cols].values
+    y = np.where(pred_data["phase"].values == "Lútea", "Lútea", "No-Lútea")
+    groups = pred_data["cycle_id"].values
+    clf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight="balanced")
+
+    cv_naive = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+    f1_naive = cross_val_score(clf, X, y, cv=cv_naive, scoring="f1_macro").mean()
+
+    cv_group = StratifiedGroupKFold(n_splits=5, shuffle=True, random_state=42)
+    f1_group = cross_val_score(clf, X, y, cv=cv_group, groups=groups, scoring="f1_macro").mean()
+
+    return f1_naive, f1_group
 
 
 # --- Language selector ---
@@ -408,3 +497,35 @@ elif view == views[4]:  # Time trend
     ax.set_title(T["monthly_avg"])
     ax.tick_params(axis="x", rotation=30)
     st.pyplot(fig)
+
+elif view == views[5]:  # Related research
+    st.title(T["views"][5])
+    st.markdown(T["research_intro"])
+
+    st.markdown(f"### {T['research_leakage_title']}")
+    f1_naive, f1_group = compute_f1_leakage_comparison(cs)
+    if f1_naive is not None:
+        fig, ax = plt.subplots(figsize=(5, 4))
+        bars = ax.bar(["StratifiedKFold", "StratifiedGroupKFold"], [f1_naive, f1_group],
+                      color=["#e74c3c", "#2ecc71"], alpha=0.75, width=0.5)
+        ax.set_ylabel("F1-macro")
+        ax.set_ylim(0, 1)
+        for bar, val in zip(bars, [f1_naive, f1_group]):
+            ax.text(bar.get_x() + bar.get_width() / 2, val + 0.02, f"{val:.3f}",
+                    ha="center", fontweight="bold")
+        st.pyplot(fig)
+    st.caption(T["research_leakage_caption"])
+
+    st.markdown(f"### {T['research_temp_title']}")
+    fig, ax = plt.subplots(figsize=(5, 4))
+    bars = ax.bar(["redmoon (N=1)", "Shilaih et al. 2018\n(n=136)"], [0.375, 0.33],
+                  color=["#f39c12", "#3498db"], alpha=0.75, width=0.5)
+    ax.set_ylabel("°C")
+    for bar, val in zip(bars, [0.375, 0.33]):
+        ax.text(bar.get_x() + bar.get_width() / 2, val + 0.01, f"+{val:.2f}°C",
+                ha="center", fontweight="bold")
+    st.pyplot(fig)
+    st.caption(T["research_temp_caption"])
+
+    st.markdown(f"### {T['research_sources_title']}")
+    st.markdown(T["research_sources_md"])
