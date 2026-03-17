@@ -30,7 +30,7 @@ def main() -> None:
 
     # analyze command
     analyze = subparsers.add_parser("analyze", help="Run full analysis on Apple Health export")
-    analyze.add_argument("xml_path", help="Path to Apple Health exportación.xml")
+    analyze.add_argument("xml_path", help="Path to Apple Health export.xml")
     analyze.add_argument("--output", "-o", help="Save report to file")
     analyze.add_argument("--json", action="store_true", help="Output report as JSON instead of text")
     analyze.add_argument("--csv-dir", help="Also save intermediate CSVs to this directory")
