@@ -200,7 +200,9 @@ La fase lutea se subdivide en **lutea temprana** y **premenstrual** (ultimos 5 d
 - **Kruskal-Wallis**: test no parametrico para comparar las 4 fases
 - **Mann-Whitney U con correccion de Bonferroni**: comparaciones post-hoc por pares
 - **Spearman**: correlaciones entre metricas
-- **Random Forest**: prediccion de fase lutea vs no-lutea (F1 = 0.79 con temperatura + HRV + HR)
+- **Random Forest**: prediccion de fase lutea vs no-lutea (F1 = 0.73 con temperatura + HRV + HR,
+  validado con `StratifiedGroupKFold` agrupando por ciclo — ver [RESEARCH.md](RESEARCH.md#5-prediccion-de-fase-con-random-forest)
+  para por que el numero naive daba 0.79 y por que ese numero era optimista)
 
 ### Limpieza de outliers
 

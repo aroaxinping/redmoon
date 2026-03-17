@@ -136,6 +136,14 @@ class CycleSleepAnalyzer:
         self.nightly["cycle_day"] = phases.apply(lambda x: x[1])
         self.nightly["cycle_length"] = phases.apply(lambda x: x[2])
 
+        # Same period index assign_phase() used internally to find the match —
+        # needed as a group key so nights from one cycle never split across
+        # train/test in cross-validation (see RESEARCH.md, section 5).
+        period_bins = periods["start"].tolist() + [pd.Timestamp.max]
+        self.nightly["cycle_id"] = pd.cut(
+            self.nightly["night_date"], bins=period_bins, labels=False, right=False
+        )
+
         cs = self.nightly.dropna(subset=["phase"]).copy()
         self.cycle_sleep = cs[
             (cs["cycle_length"] >= MIN_CYCLE_DAYS) & (cs["cycle_length"] <= MAX_CYCLE_DAYS)
