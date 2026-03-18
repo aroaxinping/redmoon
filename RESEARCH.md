@@ -203,6 +203,10 @@ real gap in the public literature) than fill it in with a made-up number.
 
 ## Honest conclusion
 
+<p align="center">
+<img src="docs/screenshots/06_research_comparison.png" alt="How redmoon's findings compare to published research" width="800">
+</p>
+
 The three clearest physiological metrics in this project (temperature, HRV, RHR)
 point in the same direction as the published literature, with the same hormonal
 mechanism behind them. The negative finding (sleep itself doesn't change) also
