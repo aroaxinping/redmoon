@@ -22,7 +22,8 @@ from redmoon.constants import (
 
 st.set_page_config(page_title="Cycle & Sleep", layout="wide", page_icon="🌙")
 
-DATA_DIR = Path(__file__).parent / "data"
+_root = Path(__file__).parent
+DATA_DIR = _root / "data" if (_root / "data" / "sleep.csv").exists() else _root / "sample_data"
 
 
 @st.cache_data
