@@ -277,12 +277,26 @@ class CycleSleepReport:
 
     def to_json(self) -> dict:
         """Export report as a JSON-serializable dictionary."""
+        def _clean(obj):
+            """Convert numpy types to native Python for JSON serialization."""
+            if isinstance(obj, dict):
+                return {k: _clean(v) for k, v in obj.items()}
+            if isinstance(obj, list):
+                return [_clean(v) for v in obj]
+            if isinstance(obj, (np.bool_,)):
+                return bool(obj)
+            if isinstance(obj, (np.integer,)):
+                return int(obj)
+            if isinstance(obj, (np.floating,)):
+                return float(obj)
+            return obj
+
         phase_dist = {}
         for p in self.phase_order:
             n = len(self.data[self.data["phase"] == p])
             phase_dist[p] = {"nights": n, "pct": round(n / self.n_nights * 100, 1)}
 
-        return {
+        return _clean({
             "n_nights": self.n_nights,
             "n_cycles": self.n_cycles,
             "mean_cycle_length": round(self.mean_cycle_length, 1),
@@ -290,4 +304,4 @@ class CycleSleepReport:
             "phase_means": self.phase_means().to_dict(orient="index"),
             "statistical_tests": self.statistical_tests(),
             "premenstrual_effect": self.premenstrual_effect(),
-        }
+        })
