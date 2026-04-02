@@ -93,3 +93,38 @@ class TestParseExport:
         path.write_text("<?xml version='1.0'?><HealthData></HealthData>")
         data = parse_export(path)
         assert data == {}
+
+    def test_xml_with_special_characters(self, tmp_path):
+        """XML with unicode and special chars in source names."""
+        xml = (
+            '<?xml version="1.0" encoding="UTF-8"?>\n'
+            '<HealthData>\n'
+            ' <Record type="HKCategoryTypeIdentifierSleepAnalysis" '
+            'sourceName="María\'s Watch" '
+            'startDate="2024-01-15 23:30:00 +0100" '
+            'endDate="2024-01-16 07:00:00 +0100" '
+            'value="HKCategoryValueSleepAnalysisAsleepCore"/>\n'
+            '</HealthData>\n'
+        )
+        path = tmp_path / "special.xml"
+        path.write_text(xml, encoding="utf-8")
+        data = parse_export(path)
+        assert "sleep" in data
+        assert len(data["sleep"]) == 1
+
+    def test_multiline_record_ignored(self, tmp_path):
+        """Records split across lines are not matched (by design)."""
+        xml = (
+            '<?xml version="1.0"?>\n'
+            '<HealthData>\n'
+            ' <Record type="HKCategoryTypeIdentifierSleepAnalysis"\n'
+            '  startDate="2024-01-15 23:30:00 +0100"\n'
+            '  endDate="2024-01-16 07:00:00 +0100"\n'
+            '  value="HKCategoryValueSleepAnalysisAsleepCore"/>\n'
+            '</HealthData>\n'
+        )
+        path = tmp_path / "multiline.xml"
+        path.write_text(xml)
+        data = parse_export(path)
+        # Multiline records won't match the single-line regex — this is expected
+        assert data == {} or "sleep" not in data or len(data.get("sleep", [])) == 0

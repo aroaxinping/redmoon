@@ -68,6 +68,78 @@ class TestAssignPhase:
         assert phases_seen == set(PHASE_ORDER)
 
 
+class TestAssignPhaseEdgeCases:
+    def test_short_cycle_21_days(self):
+        """Minimum valid cycle length — all phases should still exist."""
+        periods = pd.DataFrame({
+            "start": pd.to_datetime(["2024-01-01", "2024-01-22"]),
+            "end": pd.to_datetime(["2024-01-04", "2024-01-25"]),
+        })
+        phases_seen = set()
+        for d in range(21):
+            date = pd.Timestamp("2024-01-01") + pd.Timedelta(days=d)
+            phase, _, cl = assign_phase(date, periods)
+            assert phase is not None
+            assert cl == 21
+            phases_seen.add(phase)
+        assert phases_seen == set(PHASE_ORDER)
+
+    def test_long_cycle_45_days(self):
+        """Maximum valid cycle length — all phases should still exist."""
+        periods = pd.DataFrame({
+            "start": pd.to_datetime(["2024-01-01", "2024-02-15"]),
+            "end": pd.to_datetime(["2024-01-06", "2024-02-20"]),
+        })
+        phases_seen = set()
+        for d in range(45):
+            date = pd.Timestamp("2024-01-01") + pd.Timedelta(days=d)
+            phase, _, cl = assign_phase(date, periods)
+            assert phase is not None
+            assert cl == 45
+            phases_seen.add(phase)
+        assert phases_seen == set(PHASE_ORDER)
+
+    def test_single_bleed_day(self):
+        """Period with only 1 day of bleeding."""
+        periods = pd.DataFrame({
+            "start": pd.to_datetime(["2024-01-01", "2024-01-29"]),
+            "end": pd.to_datetime(["2024-01-01", "2024-01-29"]),
+        })
+        phase, day, _ = assign_phase(pd.Timestamp("2024-01-01"), periods)
+        assert phase == "Menstrual"
+        assert day == 1
+        # Day 2 should be follicular (past the 1-day bleed)
+        phase2, _, _ = assign_phase(pd.Timestamp("2024-01-02"), periods)
+        assert phase2 == "Folicular"
+
+    def test_day_before_cycle_start(self, periods_28d):
+        """Day immediately before cycle start."""
+        phase, _, _ = assign_phase(pd.Timestamp("2023-12-31"), periods_28d)
+        assert phase is None
+
+    def test_last_day_of_cycle(self, periods_28d):
+        """Day 28 (last day before next period) should be luteal."""
+        phase, day, _ = assign_phase(pd.Timestamp("2024-01-28"), periods_28d)
+        assert phase == "Lútea"
+        assert day == 28
+
+    def test_empty_periods_returns_none(self):
+        """Empty periods DataFrame."""
+        periods = pd.DataFrame({"start": pd.Series(dtype="datetime64[ns]"),
+                                "end": pd.Series(dtype="datetime64[ns]")})
+        phase, _, _ = assign_phase(pd.Timestamp("2024-01-15"), periods)
+        assert phase is None
+
+    def test_single_period_returns_none(self):
+        """Only one period — can't form a complete cycle."""
+        periods = pd.DataFrame({
+            "start": pd.to_datetime(["2024-01-01"]),
+            "end": pd.to_datetime(["2024-01-05"]),
+        })
+        phase, _, _ = assign_phase(pd.Timestamp("2024-01-03"), periods)
+        assert phase is None
+
+
 class TestConstants:
     def test_phase_order_has_four(self):
         assert len(PHASE_ORDER) == 4
