@@ -13,11 +13,16 @@ from scipy import stats
 from datetime import timedelta
 from pathlib import Path
 
+from redmoon.constants import (
+    PHASE_ORDER, PHASE_COLORS, METRIC_LABELS,
+    MIN_SLEEP_MIN, MAX_INBED_MIN, EARLY_MORNING_CUTOFF,
+    MIN_CYCLE_DAYS, MAX_CYCLE_DAYS, NEW_PERIOD_GAP_DAYS,
+    assign_phase,
+)
+
 st.set_page_config(page_title="Cycle & Sleep", layout="wide", page_icon="🌙")
 
 DATA_DIR = Path(__file__).parent / "data"
-COLORS = {"Menstrual": "#e74c3c", "Folicular": "#3498db", "Ovulatoria": "#2ecc71", "Lútea": "#f39c12"}
-PHASE_ORDER = ["Menstrual", "Folicular", "Ovulatoria", "Lútea"]
 
 
 @st.cache_data
@@ -34,7 +39,7 @@ def load_and_process():
     sleep = sleep_raw.copy()
     sleep["hour"] = sleep["start"].dt.hour
     sleep["night_date"] = sleep["start"].dt.date
-    mask_early = sleep["hour"] < 6
+    mask_early = sleep["hour"] < EARLY_MORNING_CUTOFF
     sleep.loc[mask_early, "night_date"] = (sleep.loc[mask_early, "start"] - timedelta(days=1)).dt.date
     sleep["night_date"] = pd.to_datetime(sleep["night_date"])
 
@@ -60,40 +65,25 @@ def load_and_process():
         nightly.append(row)
 
     nightly_df = pd.DataFrame(nightly)
-    nightly_df = nightly_df[(nightly_df["total_sleep_min"] > 120) & (nightly_df["total_inbed_min"] < 960)]
+    nightly_df = nightly_df[(nightly_df["total_sleep_min"] > MIN_SLEEP_MIN) & (nightly_df["total_inbed_min"] < MAX_INBED_MIN)]
 
     # Cycle detection
     ms = menstrual.sort_values("date").reset_index(drop=True)
     ms["date_dt"] = pd.to_datetime(ms["date"])
     ms["gap"] = ms["date_dt"].diff().dt.days
-    ms["new_period"] = (ms["gap"] > 5) | (ms["gap"].isna())
+    ms["new_period"] = (ms["gap"] > NEW_PERIOD_GAP_DAYS) | (ms["gap"].isna())
     ms["period_id"] = ms["new_period"].cumsum()
     periods = ms.groupby("period_id").agg(start=("date_dt", "min"), end=("date_dt", "max"), n_days=("date_dt", "count")).reset_index()
     periods["cycle_length"] = periods["start"].diff().dt.days
 
-    # Assign phases
-    def assign_phase(date):
-        date = pd.Timestamp(date)
-        for i in range(len(periods) - 1):
-            ps, pe = periods.iloc[i]["start"], periods.iloc[i]["end"]
-            nps = periods.iloc[i + 1]["start"]
-            cl = (nps - ps).days
-            if ps <= date < nps:
-                d = (date - ps).days + 1
-                bd = (pe - ps).days + 1
-                if d <= bd: return "Menstrual", d, cl
-                if d <= int(cl * 0.46): return "Folicular", d, cl
-                if d <= int(cl * 0.57): return "Ovulatoria", d, cl
-                return "Lútea", d, cl
-        return None, None, None
-
-    phases = nightly_df["night_date"].apply(assign_phase)
+    # Assign phases (uses shared function from redmoon.constants)
+    phases = nightly_df["night_date"].apply(lambda d: assign_phase(d, periods))
     nightly_df["phase"] = phases.apply(lambda x: x[0])
     nightly_df["cycle_day"] = phases.apply(lambda x: x[1])
     nightly_df["cycle_length"] = phases.apply(lambda x: x[2])
 
     cs = nightly_df.dropna(subset=["phase"]).copy()
-    cs = cs[(cs["cycle_length"] >= 21) & (cs["cycle_length"] <= 45)]
+    cs = cs[(cs["cycle_length"] >= MIN_CYCLE_DAYS) & (cs["cycle_length"] <= MAX_CYCLE_DAYS)]
 
     # Merge biometrics
     wrist_temp["night_date"] = pd.to_datetime(wrist_temp["date"])
@@ -182,7 +172,7 @@ elif view == "Sueno por fase":
         data = [cs[cs["phase"] == p][metric].dropna() for p in PHASE_ORDER]
         bp = ax.boxplot(data, tick_labels=PHASE_ORDER, patch_artist=True, widths=0.6)
         for patch, phase in zip(bp["boxes"], PHASE_ORDER):
-            patch.set_facecolor(COLORS[phase])
+            patch.set_facecolor(PHASE_COLORS[phase])
             patch.set_alpha(0.6)
         stat, p = kw_test(cs, metric)
         ax.set_title(f"p = {p:.4f}" if p else "")
@@ -225,7 +215,7 @@ elif view == "Biomarcadores":
         data = [bio_data[bio_data["phase"] == p][bio].dropna() for p in PHASE_ORDER]
         bp = ax.boxplot(data, tick_labels=PHASE_ORDER, patch_artist=True, widths=0.6)
         for patch, phase in zip(bp["boxes"], PHASE_ORDER):
-            patch.set_facecolor(COLORS[phase])
+            patch.set_facecolor(PHASE_COLORS[phase])
             patch.set_alpha(0.6)
         stat, p = kw_test(bio_data, bio)
         ax.set_title(f"p = {p:.6f}" if p else "")

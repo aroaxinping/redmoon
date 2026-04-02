@@ -5,11 +5,32 @@ Takes parsed DataFrames and produces nightly aggregation, cycle phase assignment
 statistical tests, and a structured report.
 """
 
+from __future__ import annotations
+
+import logging
 from datetime import timedelta
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 from scipy import stats
+
+from .constants import (
+    PHASE_ORDER,
+    SLEEP_METRICS,
+    BIO_METRICS,
+    METRIC_LABELS,
+    MIN_SLEEP_MIN,
+    MAX_INBED_MIN,
+    EARLY_MORNING_CUTOFF,
+    MIN_CYCLE_DAYS,
+    MAX_CYCLE_DAYS,
+    NEW_PERIOD_GAP_DAYS,
+    PREMENSTRUAL_WINDOW_DAYS,
+    assign_phase,
+)
+
+logger = logging.getLogger(__name__)
 
 
 class CycleSleepAnalyzer:
@@ -18,20 +39,22 @@ class CycleSleepAnalyzer:
 
     Usage
     -----
-    >>> from cyclesleep import parse_export, CycleSleepAnalyzer
+    >>> from redmoon import parse_export, CycleSleepAnalyzer
     >>> data = parse_export("exportación.xml")
     >>> analyzer = CycleSleepAnalyzer(data)
     >>> report = analyzer.run()
     >>> print(report.summary())
     """
 
-    PHASE_ORDER = ["Menstrual", "Folicular", "Ovulatoria", "Lútea"]
-
-    def __init__(self, data: dict[str, pd.DataFrame]):
+    def __init__(self, data: dict[str, pd.DataFrame]) -> None:
+        if "sleep" not in data or data["sleep"].empty:
+            raise ValueError("Sleep data is required. The 'sleep' key must be present and non-empty.")
+        if "menstrual" not in data or data["menstrual"].empty:
+            raise ValueError("Menstrual data is required. The 'menstrual' key must be present and non-empty.")
         self.raw = data
-        self.nightly = None
-        self.periods = None
-        self.cycle_sleep = None
+        self.nightly: Optional[pd.DataFrame] = None
+        self.periods: Optional[pd.DataFrame] = None
+        self.cycle_sleep: Optional[pd.DataFrame] = None
 
     def run(self) -> "CycleSleepReport":
         """Execute the full analysis pipeline."""
@@ -39,13 +62,13 @@ class CycleSleepAnalyzer:
         self._detect_cycles()
         self._assign_phases()
         self._merge_biometrics()
-        return CycleSleepReport(self.cycle_sleep, self.periods, self.PHASE_ORDER)
+        return CycleSleepReport(self.cycle_sleep, self.periods)
 
     def _aggregate_nightly(self):
         sleep = self.raw["sleep"].copy()
         sleep["hour"] = sleep["start"].dt.hour
         sleep["night_date"] = sleep["start"].dt.date
-        mask_early = sleep["hour"] < 6
+        mask_early = sleep["hour"] < EARLY_MORNING_CUTOFF
         sleep.loc[mask_early, "night_date"] = (
             sleep.loc[mask_early, "start"] - timedelta(days=1)
         ).dt.date
@@ -87,15 +110,16 @@ class CycleSleepAnalyzer:
 
         df = pd.DataFrame(rows)
         self.nightly = df[
-            (df["total_sleep_min"] > 120) & (df["total_inbed_min"] < 960)
+            (df["total_sleep_min"] > MIN_SLEEP_MIN) & (df["total_inbed_min"] < MAX_INBED_MIN)
         ].reset_index(drop=True)
+        logger.info("Nightly aggregation: %d valid nights", len(self.nightly))
 
     def _detect_cycles(self):
         ms = self.raw["menstrual"].copy()
         ms["date_dt"] = pd.to_datetime(ms["date"])
         ms = ms.sort_values("date_dt").reset_index(drop=True)
         ms["gap"] = ms["date_dt"].diff().dt.days
-        ms["new_period"] = (ms["gap"] > 5) | (ms["gap"].isna())
+        ms["new_period"] = (ms["gap"] > NEW_PERIOD_GAP_DAYS) | (ms["gap"].isna())
         ms["period_id"] = ms["new_period"].cumsum()
 
         self.periods = (
@@ -105,37 +129,19 @@ class CycleSleepAnalyzer:
         )
         self.periods["cycle_length"] = self.periods["start"].diff().dt.days
 
-    def _assign_phases(self):
+    def _assign_phases(self) -> None:
         periods = self.periods
-
-        def assign(date):
-            date = pd.Timestamp(date)
-            for i in range(len(periods) - 1):
-                ps = periods.iloc[i]["start"]
-                pe = periods.iloc[i]["end"]
-                nps = periods.iloc[i + 1]["start"]
-                cl = (nps - ps).days
-                if ps <= date < nps:
-                    d = (date - ps).days + 1
-                    bd = (pe - ps).days + 1
-                    if d <= bd:
-                        return "Menstrual", d, cl
-                    if d <= int(cl * 0.46):
-                        return "Folicular", d, cl
-                    if d <= int(cl * 0.57):
-                        return "Ovulatoria", d, cl
-                    return "Lútea", d, cl
-            return None, None, None
-
-        phases = self.nightly["night_date"].apply(assign)
+        phases = self.nightly["night_date"].apply(lambda d: assign_phase(d, periods))
         self.nightly["phase"] = phases.apply(lambda x: x[0])
         self.nightly["cycle_day"] = phases.apply(lambda x: x[1])
         self.nightly["cycle_length"] = phases.apply(lambda x: x[2])
 
         cs = self.nightly.dropna(subset=["phase"]).copy()
         self.cycle_sleep = cs[
-            (cs["cycle_length"] >= 21) & (cs["cycle_length"] <= 45)
+            (cs["cycle_length"] >= MIN_CYCLE_DAYS) & (cs["cycle_length"] <= MAX_CYCLE_DAYS)
         ].reset_index(drop=True)
+        logger.info("Phase assignment: %d nights in %d valid cycles",
+                     len(self.cycle_sleep), self.cycle_sleep["cycle_length"].nunique())
 
     def _merge_biometrics(self):
         cs = self.cycle_sleep
@@ -163,25 +169,10 @@ class CycleSleepAnalyzer:
 class CycleSleepReport:
     """Structured report with statistical results and summaries."""
 
-    SLEEP_METRICS = ["total_sleep_min", "pct_rem", "pct_deep", "efficiency", "n_awakenings"]
-    BIO_METRICS = ["temp_c", "hrv_ms", "resting_hr_bpm", "disturbances"]
-    LABELS = {
-        "total_sleep_min": "Duracion (min)",
-        "pct_rem": "% REM",
-        "pct_deep": "% Deep",
-        "efficiency": "Eficiencia (%)",
-        "n_awakenings": "Despertares",
-        "temp_c": "Temperatura muneca (C)",
-        "hrv_ms": "HRV (ms)",
-        "resting_hr_bpm": "Resting HR (bpm)",
-        "disturbances": "Pert. respiratorias",
-    }
-
-    def __init__(self, cycle_sleep, periods, phase_order):
+    def __init__(self, cycle_sleep: pd.DataFrame, periods: pd.DataFrame) -> None:
         self.data = cycle_sleep
         self.periods = periods
-        self.phase_order = phase_order
-        self._stats_cache = {}
+        self.phase_order = PHASE_ORDER
 
     @property
     def n_nights(self):
@@ -199,17 +190,17 @@ class CycleSleepReport:
 
     def phase_means(self) -> pd.DataFrame:
         """Mean of all metrics by cycle phase."""
-        all_metrics = self.SLEEP_METRICS + self.BIO_METRICS
+        all_metrics = SLEEP_METRICS + BIO_METRICS
         available = [m for m in all_metrics if m in self.data.columns]
         df = self.data.groupby("phase")[available].mean().round(2)
         df = df.reindex(self.phase_order)
-        df.columns = [self.LABELS.get(c, c) for c in df.columns]
+        df.columns = [METRIC_LABELS.get(c, c) for c in df.columns]
         return df
 
     def statistical_tests(self) -> list[dict]:
         """Kruskal-Wallis test for each metric across phases."""
         results = []
-        all_metrics = self.SLEEP_METRICS + self.BIO_METRICS
+        all_metrics = SLEEP_METRICS + BIO_METRICS
         for metric in all_metrics:
             if metric not in self.data.columns:
                 continue
@@ -222,7 +213,7 @@ class CycleSleepReport:
                 continue
             h, p = stats.kruskal(*valid)
             results.append({
-                "metric": self.LABELS.get(metric, metric),
+                "metric": METRIC_LABELS.get(metric, metric),
                 "H": round(h, 3),
                 "p_value": p,
                 "significant": p < 0.05,
@@ -235,13 +226,13 @@ class CycleSleepReport:
         luteal["days_to_period"] = luteal["cycle_length"] - luteal["cycle_day"]
 
         results = []
-        for metric in self.SLEEP_METRICS:
-            early = luteal[luteal["days_to_period"] > 5][metric].dropna()
-            late = luteal[luteal["days_to_period"] <= 5][metric].dropna()
+        for metric in SLEEP_METRICS:
+            early = luteal[luteal["days_to_period"] > PREMENSTRUAL_WINDOW_DAYS][metric].dropna()
+            late = luteal[luteal["days_to_period"] <= PREMENSTRUAL_WINDOW_DAYS][metric].dropna()
             if len(early) > 5 and len(late) > 5:
                 u, p = stats.mannwhitneyu(early, late, alternative="two-sided")
                 results.append({
-                    "metric": self.LABELS.get(metric, metric),
+                    "metric": METRIC_LABELS.get(metric, metric),
                     "early_luteal": round(early.mean(), 2),
                     "premenstrual": round(late.mean(), 2),
                     "p_value": p,
