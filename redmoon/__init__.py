@@ -1,5 +1,5 @@
 """
-cyclesleep - Analyze the relationship between menstrual cycle and sleep quality
+redmoon - Analyze the relationship between menstrual cycle and sleep quality
 using Apple Health export data.
 """
 
