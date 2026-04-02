@@ -7,3 +7,4 @@ __version__ = "0.1.0"
 
 from .parser import parse_export
 from .analyzer import CycleSleepAnalyzer
+from .constants import PHASE_ORDER, assign_phase
