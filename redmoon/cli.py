@@ -32,6 +32,7 @@ def main() -> None:
     analyze = subparsers.add_parser("analyze", help="Run full analysis on Apple Health export")
     analyze.add_argument("xml_path", help="Path to Apple Health exportación.xml")
     analyze.add_argument("--output", "-o", help="Save report to file")
+    analyze.add_argument("--json", action="store_true", help="Output report as JSON instead of text")
     analyze.add_argument("--csv-dir", help="Also save intermediate CSVs to this directory")
 
     # dashboard command
@@ -77,13 +78,18 @@ def run_analyze(args: argparse.Namespace) -> None:
     analyzer = CycleSleepAnalyzer(data)
     report = analyzer.run()
 
-    summary = report.summary()
+    if args.json:
+        import json
+        output = json.dumps(report.to_json(), indent=2, ensure_ascii=False)
+    else:
+        output = report.summary()
+
     print()
-    print(summary)
+    print(output)
 
     if args.output:
         with open(args.output, "w") as f:
-            f.write(summary)
+            f.write(output)
         logger.info("Report saved to %s", args.output)
 
 
