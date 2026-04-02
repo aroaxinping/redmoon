@@ -1,6 +1,33 @@
-# Cycle & Sleep: Patrones Hormonales en la Calidad del Sueño
+# redmoon
 
 Análisis de datos reales de Apple Health para investigar si existe una relación entre el ciclo menstrual y la calidad del sueño.
+
+## Instalación
+
+```bash
+pip install redmoon
+```
+
+## Quick start
+
+```bash
+# Analizar tu exportación de Apple Health
+redmoon analyze exportación.xml
+
+# Guardar report + CSVs intermedios
+redmoon analyze exportación.xml --output report.txt --csv-dir data/
+```
+
+O como librería Python:
+
+```python
+from redmoon import parse_export, CycleSleepAnalyzer
+
+data = parse_export("exportación.xml")
+analyzer = CycleSleepAnalyzer(data)
+report = analyzer.run()
+print(report.summary())
+```
 
 ## Hipótesis
 
@@ -71,32 +98,24 @@ Adicionalmente, la fase lútea se subdivide en **lútea temprana** y **premenstr
 ## Estructura
 
 ```
+├── redmoon/                     # Paquete PyPI
+│   ├── parser.py                # Parser XML → DataFrames
+│   ├── analyzer.py              # Motor de análisis + report
+│   └── cli.py                   # CLI: redmoon analyze
 ├── src/
-│   └── parse_health_export.py   # Parser XML → CSV
+│   └── parse_health_export.py   # Parser standalone (legacy)
 ├── notebooks/
-│   └── analysis.ipynb           # Análisis completo
+│   └── analysis.ipynb           # Análisis completo con visualizaciones
+├── dashboard.py                 # Dashboard interactivo (Streamlit)
 ├── data/                        # (gitignored) datos privados
-│   ├── sleep.csv
-│   ├── menstrual.csv
-│   ├── wrist_temp.csv
-│   └── breathing.csv
-└── requirements.txt
+└── pyproject.toml
 ```
 
-## Uso
+## Dashboard
 
 ```bash
-# 1. Instalar dependencias
-pip install -r requirements.txt
-
-# 2. Colocar exportación de Apple Health en data/
-cp ~/Downloads/exportación.zip data/
-
-# 3. Parsear datos
-python src/parse_health_export.py data/exportación.xml
-
-# 4. Abrir notebook
-jupyter notebook notebooks/analysis.ipynb
+pip install redmoon[all]
+streamlit run dashboard.py
 ```
 
 ## Privacidad
