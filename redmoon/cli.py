@@ -34,6 +34,10 @@ def main() -> None:
     analyze.add_argument("--output", "-o", help="Save report to file")
     analyze.add_argument("--csv-dir", help="Also save intermediate CSVs to this directory")
 
+    # dashboard command
+    dash = subparsers.add_parser("dashboard", help="Launch interactive Streamlit dashboard")
+    dash.add_argument("--port", type=int, default=8501, help="Port to run on (default: 8501)")
+
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -43,6 +47,8 @@ def main() -> None:
 
     if args.command == "analyze":
         run_analyze(args)
+    elif args.command == "dashboard":
+        run_dashboard(args)
     else:
         parser.print_help()
 
@@ -79,6 +85,23 @@ def run_analyze(args: argparse.Namespace) -> None:
         with open(args.output, "w") as f:
             f.write(summary)
         logger.info("Report saved to %s", args.output)
+
+
+def run_dashboard(args: argparse.Namespace) -> None:
+    try:
+        import streamlit.web.cli as stcli
+    except ImportError:
+        logger.error("Streamlit not installed. Run: pip install redmoon[dashboard]")
+        sys.exit(1)
+
+    from pathlib import Path
+    dashboard_path = Path(__file__).resolve().parent.parent / "dashboard.py"
+    if not dashboard_path.exists():
+        logger.error("dashboard.py not found at %s", dashboard_path)
+        sys.exit(1)
+
+    sys.argv = ["streamlit", "run", str(dashboard_path), "--server.port", str(args.port)]
+    stcli.main()
 
 
 if __name__ == "__main__":
