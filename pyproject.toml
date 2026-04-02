@@ -37,3 +37,6 @@ redmoon = "redmoon.cli:main"
 [project.urls]
 Homepage = "https://github.com/aroaxinping/redmoon"
 Repository = "https://github.com/aroaxinping/redmoon"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
