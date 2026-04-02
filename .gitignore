@@ -1,7 +1,5 @@
 # Health data (private)
-data/*.xml
-data/*.zip
-data/raw/
+data/
 
 # Python
 __pycache__/
