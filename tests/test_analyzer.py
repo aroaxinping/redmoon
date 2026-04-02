@@ -125,3 +125,21 @@ class TestCycleSleepReport:
     def test_mean_cycle_length_in_range(self, report):
         mcl = report.mean_cycle_length
         assert MIN_CYCLE_DAYS <= mcl <= MAX_CYCLE_DAYS
+
+    def test_to_json_structure(self, report):
+        j = report.to_json()
+        assert "n_nights" in j
+        assert "n_cycles" in j
+        assert "mean_cycle_length" in j
+        assert "phase_distribution" in j
+        assert "phase_means" in j
+        assert "statistical_tests" in j
+        assert "premenstrual_effect" in j
+        assert len(j["phase_distribution"]) == 4
+
+    def test_to_json_serializable(self, report):
+        """Ensure the JSON output is actually serializable."""
+        import json
+        j = report.to_json()
+        serialized = json.dumps(j)
+        assert isinstance(serialized, str)
