@@ -1,10 +1,16 @@
-# Cycle & Sleep: Hormonal Patterns in Sleep Quality
+# Cycle & Sleep: Patrones Hormonales en la Calidad del Sueño
 
 Análisis de datos reales de Apple Health para investigar si existe una relación entre el ciclo menstrual y la calidad del sueño.
 
 ## Hipótesis
 
 > El ciclo hormonal influye en la duración, estructura y calidad del sueño de forma predecible a lo largo de sus fases (menstrual, folicular, ovulatoria, lútea).
+
+## Hallazgos principales
+
+- **La temperatura nocturna confirma el ciclo hormonal** (p < 0.000001): +0.375 C en fase lútea vs folicular. La progesterona post-ovulación se refleja claramente en la muñeca.
+- **El sueño no cambia significativamente entre fases** a nivel global (p > 0.05 en duración, % REM, % Deep, eficiencia).
+- **Pero justo antes del periodo hay más despertares**: 6.3 vs 5.1 despertares/noche en los últimos 5 días pre-menstruales (p = 0.034). El sueño se fragmenta más, aunque la duración total se mantiene.
 
 ## Datos
 
@@ -46,13 +52,21 @@ Las noches anteriores a 2020 solo tienen datos "InBed" sin desglose en Core/REM/
 
 ## Fases del ciclo
 
-El análisis divide cada ciclo en 4 fases estimadas de forma proporcional a la duración real de cada ciclo:
-1. **Menstrual** (días 1-5): días de sangrado registrados
-2. **Folicular** (días 6-13): post-menstruación hasta ovulación estimada
-3. **Ovulatoria** (días 14-16): ventana de ovulación estimada
-4. **Lútea** (días 17-28+): post-ovulación hasta siguiente menstruación
+El ciclo menstrual es un proceso hormonal que se repite aproximadamente cada 28-30 días. El análisis divide cada ciclo en 4 fases, estimadas de forma proporcional a la duración real de cada ciclo individual:
 
-Adicionalmente, la fase lútea se subdivide en **lútea temprana** y **premenstrual** (últimos 5 días antes del periodo) para analizar el efecto PMS en el sueño.
+### 1. Menstrual (días 1-5)
+Días de sangrado. Los niveles de estrógeno y progesterona están en su punto más bajo. El cuerpo descama el endometrio del ciclo anterior. Es frecuente sentir fatiga, dolor abdominal y cambios de ánimo.
+
+### 2. Folicular (días 6-13)
+El estrógeno sube progresivamente mientras los folículos ováricos maduran. Es la fase en la que generalmente hay más energía, mejor ánimo y mayor claridad mental. El cuerpo se prepara para la ovulación.
+
+### 3. Ovulatoria (días 14-16)
+Pico de estrógeno y de hormona luteinizante (LH), que desencadena la liberación del óvulo. Suele ser el punto de máxima energía del ciclo. La temperatura basal empieza a subir tras la ovulación.
+
+### 4. Lútea (días 17-28+)
+La progesterona sube significativamente (el cuerpo lúteo la produce tras ovular). Esto eleva la temperatura basal ~0.3-0.5 C. En los últimos días, si no hay embarazo, tanto progesterona como estrógeno caen bruscamente, causando los síntomas premenstruales (PMS): irritabilidad, hinchazón, insomnio, antojos.
+
+Adicionalmente, la fase lútea se subdivide en **lútea temprana** y **premenstrual** (últimos 5 días antes del periodo) para aislar el efecto PMS en el sueño.
 
 ## Estructura
 
