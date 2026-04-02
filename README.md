@@ -13,6 +13,16 @@ pip install redmoon
 redmoon analyze exportacion.xml
 ```
 
+No tienes datos de Apple Health? El repo incluye **datos sinteticos de ejemplo** para probar todo sin necesitar un iPhone:
+
+```bash
+git clone https://github.com/aroaxinping/redmoon.git
+cd redmoon
+pip install -e ".[all]"
+pytest tests/ -v          # 48 tests
+redmoon dashboard         # abre el dashboard con datos de ejemplo
+```
+
 ---
 
 ## Que encuentra redmoon
@@ -63,6 +73,12 @@ redmoon analyze exportacion.xml
 
 # Guardar report a archivo + CSVs intermedios
 redmoon analyze exportacion.xml --output report.txt --csv-dir data/
+
+# Exportar como JSON (para integraciones o procesado posterior)
+redmoon analyze exportacion.xml --json --output report.json
+
+# Modo verbose para ver logs detallados
+redmoon -v analyze exportacion.xml
 ```
 
 **Como libreria Python:**
@@ -85,16 +101,21 @@ report.statistical_tests()
 
 # Efecto premenstrual
 report.premenstrual_effect()
+
+# Exportar como diccionario JSON-serializable
+report.to_json()
 ```
 
 ### 4. Dashboard interactivo (opcional)
 
 ```bash
 pip install redmoon[all]
-streamlit run dashboard.py
+redmoon dashboard
 ```
 
 5 vistas: resumen, sueno por fase, biomarcadores, efecto premenstrual, tendencia temporal.
+
+Si no tienes datos propios en `data/`, el dashboard usa automaticamente los datos sinteticos de `sample_data/`.
 
 ### 5. Notebook de analisis (opcional)
 
@@ -168,17 +189,17 @@ redmoon/
 ├── redmoon/               # Paquete Python (PyPI)
 │   ├── __init__.py        #   Exports: parse_export, CycleSleepAnalyzer
 │   ├── parser.py          #   XML → DataFrames
-│   ├── analyzer.py        #   Analisis + report
+│   ├── analyzer.py        #   Analisis + report + JSON export
 │   ├── constants.py       #   Constantes, umbrales y logica de fases
-│   └── cli.py             #   CLI: redmoon analyze
-├── tests/                 # Tests (pytest, 37 tests)
-│   ├── test_parser.py     #   Parser: tipos, columnas, validacion
-│   ├── test_analyzer.py   #   Analyzer: pipeline, report, edge cases
-│   └── test_constants.py  #   Asignacion de fases y constantes
-├── sample_data/           # Datos sinteticos para probar sin Apple Health
+│   └── cli.py             #   CLI: redmoon analyze / redmoon dashboard
+├── tests/                 # Tests (pytest, 48 tests)
+│   ├── test_parser.py     #   Parser: tipos, columnas, validacion, edge cases
+│   ├── test_analyzer.py   #   Analyzer: pipeline, report, JSON serialization
+│   └── test_constants.py  #   Asignacion de fases, ciclos limite (21/45d)
+├── sample_data/           # Datos sinteticos (3 ciclos, ~85 noches)
 ├── notebooks/
 │   └── analysis.ipynb     # Analisis completo con graficas
-├── dashboard.py           # Dashboard Streamlit
+├── dashboard.py           # Dashboard Streamlit (5 vistas)
 ├── .github/workflows/     # CI: tests en Python 3.9-3.12
 ├── data/                  # (gitignored) tus datos privados
 ├── pyproject.toml
@@ -192,16 +213,24 @@ git clone https://github.com/aroaxinping/redmoon.git
 cd redmoon
 pip install -e ".[all]"
 pip install pytest
+```
 
-# Tests
+```bash
+# Ejecutar tests
 pytest tests/ -v
 
-# Probar con datos de ejemplo (sin necesitar Apple Health)
+# Probar con datos de ejemplo
 python -c "
 import pandas as pd
 from redmoon import CycleSleepAnalyzer
-data = {k: pd.read_csv(f'sample_data/{k}.csv', parse_dates=['start','end'] if k=='sleep' else None)
-        for k in ['sleep','menstrual','wrist_temp','hrv','resting_hr','breathing']}
+
+data = {
+    k: pd.read_csv(
+        f'sample_data/{k}.csv',
+        parse_dates=['start', 'end'] if k == 'sleep' else None,
+    )
+    for k in ['sleep', 'menstrual', 'wrist_temp', 'hrv', 'resting_hr', 'breathing']
+}
 print(CycleSleepAnalyzer(data).run().summary())
 "
 ```
