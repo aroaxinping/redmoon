@@ -3,6 +3,7 @@
 [![CI](https://github.com/aroaxinping/redmoon/actions/workflows/ci.yml/badge.svg)](https://github.com/aroaxinping/redmoon/actions/workflows/ci.yml)
 [![PyPI](https://img.shields.io/pypi/v/redmoon)](https://pypi.org/project/redmoon/)
 [![Python](https://img.shields.io/pypi/pyversions/redmoon)](https://pypi.org/project/redmoon/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
 Herramienta de analisis que cruza datos del ciclo menstrual con metricas de sueno, HRV y frecuencia cardiaca a partir de tu exportacion de Apple Health.
 
