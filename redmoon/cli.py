@@ -6,17 +6,25 @@ Usage:
     redmoon analyze <path_to_export.xml> --output report.txt
 """
 
+from __future__ import annotations
+
 import argparse
+import logging
 import sys
 
 from .parser import parse_export
 from .analyzer import CycleSleepAnalyzer
 
+logger = logging.getLogger("redmoon")
 
-def main():
+
+def main() -> None:
     parser = argparse.ArgumentParser(
         prog="redmoon",
         description="Analyze menstrual cycle vs sleep quality from Apple Health data",
+    )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Enable debug logging",
     )
     subparsers = parser.add_subparsers(dest="command")
 
@@ -28,19 +36,27 @@ def main():
 
     args = parser.parse_args()
 
+    logging.basicConfig(
+        level=logging.DEBUG if args.verbose else logging.INFO,
+        format="%(levelname)s: %(message)s",
+    )
+
     if args.command == "analyze":
         run_analyze(args)
     else:
         parser.print_help()
 
 
-def run_analyze(args):
-    print(f"Parsing {args.xml_path}...")
-    data = parse_export(args.xml_path, progress_callback=lambda n: print(f"  {n:,} records...", end="\r"))
+def run_analyze(args: argparse.Namespace) -> None:
+    logger.info("Parsing %s...", args.xml_path)
+    data = parse_export(
+        args.xml_path,
+        progress_callback=lambda n: print(f"  {n:,} records...", end="\r"),
+    )
     print()
 
     for name, df in data.items():
-        print(f"  {name}: {len(df):,} records")
+        logger.info("  %s: %s records", name, f"{len(df):,}")
 
     if args.csv_dir:
         from pathlib import Path
@@ -49,9 +65,9 @@ def run_analyze(args):
         for name, df in data.items():
             path = csv_dir / f"{name}.csv"
             df.to_csv(path, index=False)
-            print(f"  Saved {path}")
+            logger.info("  Saved %s", path)
 
-    print("\nAnalyzing...")
+    logger.info("Analyzing...")
     analyzer = CycleSleepAnalyzer(data)
     report = analyzer.run()
 
@@ -62,7 +78,7 @@ def run_analyze(args):
     if args.output:
         with open(args.output, "w") as f:
             f.write(summary)
-        print(f"\nReport saved to {args.output}")
+        logger.info("Report saved to %s", args.output)
 
 
 if __name__ == "__main__":

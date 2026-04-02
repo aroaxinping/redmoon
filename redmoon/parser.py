@@ -4,11 +4,17 @@ Parse Apple Health XML export into structured DataFrames.
 Handles the ~1.7GB XML file via line-by-line regex matching (no full DOM parsing).
 """
 
+from __future__ import annotations
+
+import logging
 import re
 from pathlib import Path
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
+
+logger = logging.getLogger(__name__)
 
 TYPES = {
     "HKCategoryTypeIdentifierSleepAnalysis": "sleep",
@@ -33,7 +39,10 @@ RECORD_QUANT_RE = re.compile(
 )
 
 
-def parse_export(xml_path: str, progress_callback=None) -> dict[str, pd.DataFrame]:
+def parse_export(
+    xml_path: str | Path,
+    progress_callback: Optional[Callable[[int], None]] = None,
+) -> dict[str, pd.DataFrame]:
     """
     Parse an Apple Health XML export file.
 
@@ -49,10 +58,17 @@ def parse_export(xml_path: str, progress_callback=None) -> dict[str, pd.DataFram
     dict[str, pd.DataFrame]
         Dictionary with keys: sleep, menstrual, wrist_temp, breathing, hrv, resting_hr
     """
-    records = {name: [] for name in TYPES.values()}
+    xml_path = Path(xml_path)
+    if not xml_path.exists():
+        raise FileNotFoundError(f"XML file not found: {xml_path}")
+    if not xml_path.is_file():
+        raise ValueError(f"Path is not a file: {xml_path}")
+
+    records: dict[str, list[dict]] = {name: [] for name in TYPES.values()}
     type_keys = set(TYPES.keys())
     count = 0
 
+    logger.info("Parsing %s", xml_path)
     with open(xml_path, "r", encoding="utf-8") as f:
         for line in f:
             if "<Record" not in line:
@@ -83,6 +99,7 @@ def parse_export(xml_path: str, progress_callback=None) -> dict[str, pd.DataFram
                 if progress_callback and count % 10000 == 0:
                     progress_callback(count)
 
+    logger.info("Parsed %d records total", count)
     return _to_dataframes(records)
 
 
