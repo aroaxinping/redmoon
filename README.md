@@ -5,9 +5,9 @@
 [![Python](https://img.shields.io/pypi/pyversions/redmoon)](https://pypi.org/project/redmoon/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-Herramienta de analisis que cruza datos del ciclo menstrual con metricas de sueno, HRV y frecuencia cardiaca a partir de tu exportacion de Apple Health.
+Herramienta de analisis que cruza datos del ciclo menstrual con metricas de sueño, HRV y frecuencia cardiaca a partir de tu exportacion de Apple Health.
 
-Una sola linea y obtienes un informe con tests estadisticos, correlaciones y deteccion de patrones hormonales en tu sueno.
+Una sola linea y obtienes un informe con tests estadisticos, correlaciones y deteccion de patrones hormonales en tu sueño.
 
 ```bash
 pip install redmoon
@@ -26,6 +26,30 @@ redmoon dashboard         # abre el dashboard con datos de ejemplo
 
 ---
 
+## Dashboard
+
+<p align="center">
+<img src="docs/screenshots/01_resumen.png" alt="Significancia estadistica por metrica" width="700">
+</p>
+
+<p align="center">
+<img src="docs/screenshots/02_sueño_por_fase.png" alt="Sueño por fase del ciclo" width="700">
+</p>
+
+<p align="center">
+<img src="docs/screenshots/03_biomarcadores.png" alt="Biomarcadores fisiologicos por fase" width="700">
+</p>
+
+<p align="center">
+<img src="docs/screenshots/04_efecto_premenstrual.png" alt="Efecto premenstrual" width="700">
+</p>
+
+<p align="center">
+<img src="docs/screenshots/05_tendencia_temporal.png" alt="Tendencia temporal" width="700">
+</p>
+
+---
+
 ## Que encuentra redmoon
 
 Resultados reales con ~6 anos de datos de Apple Health (76 ciclos, 1,153 noches):
@@ -36,11 +60,11 @@ Resultados reales con ~6 anos de datos de Apple Health (76 ciclos, 1,153 noches)
 | HRV | Si (p < 0.000001) | -3ms en fase lutea |
 | Frecuencia cardiaca en reposo | Si (p < 0.000001) | +2bpm en fase lutea |
 | Despertares premenstruales | Si (p = 0.034) | +1.1 despertares/noche los ultimos 5 dias |
-| Duracion del sueno | No (p = 0.28) | Sin diferencia entre fases |
+| Duracion del sueño | No (p = 0.28) | Sin diferencia entre fases |
 | % REM / % Deep | No (p > 0.7) | Sin diferencia entre fases |
-| Eficiencia del sueno | No (p = 0.21) | Sin diferencia entre fases |
+| Eficiencia del sueño | No (p = 0.21) | Sin diferencia entre fases |
 
-**Conclusion**: las hormonas cambian tu fisiologia nocturna de forma muy clara (temperatura, HRV, frecuencia cardiaca), pero el sueno en si solo se ve afectado justo antes del periodo, con mas despertares.
+**Conclusion**: las hormonas cambian tu fisiologia nocturna de forma muy clara (temperatura, HRV, frecuencia cardiaca), pero el sueño en si solo se ve afectado justo antes del periodo, con mas despertares.
 
 ---
 
@@ -114,7 +138,7 @@ pip install redmoon[all]
 redmoon dashboard
 ```
 
-5 vistas: resumen, sueno por fase, biomarcadores, efecto premenstrual, tendencia temporal.
+5 vistas: resumen, sueño por fase, biomarcadores, efecto premenstrual, tendencia temporal.
 
 Si no tienes datos propios en `data/`, el dashboard usa automaticamente los datos sinteticos de `sample_data/`.
 
@@ -134,14 +158,14 @@ redmoon extrae automaticamente del XML de Apple Health:
 
 | Dato | Fuente | Registros tipicos |
 |---|---|---|
-| Fases de sueno (Core, REM, Deep, Awake) | Apple Watch | Miles |
+| Fases de sueño (Core, REM, Deep, Awake) | Apple Watch | Miles |
 | Flujo menstrual | App Salud / tracker | Cientos |
 | Temperatura de muneca nocturna | Apple Watch Ultra / Series 8+ | Cientos |
 | HRV (SDNN) | Apple Watch | Miles |
 | Frecuencia cardiaca en reposo | Apple Watch | Miles |
 | Perturbaciones respiratorias | Apple Watch | Cientos |
 
-No necesitas todos. El minimo es **sueno + periodo**. Los biomarcadores (temperatura, HRV, HR) enriquecen el analisis pero son opcionales.
+No necesitas todos. El minimo es **sueño + periodo**. Los biomarcadores (temperatura, HRV, HR) enriquecen el analisis pero son opcionales.
 
 ---
 
@@ -149,7 +173,7 @@ No necesitas todos. El minimo es **sueno + periodo**. Los biomarcadores (tempera
 
 ### Agregacion nocturna
 
-Cada noche se asigna a la fecha en que empieza el sueno. Si te duermes a las 2:00, esa noche cuenta como el dia anterior. Se filtran noches con <2h de sueno o >16h en cama.
+Cada noche se asigna a la fecha en que empieza el sueño. Si te duermes a las 2:00, esa noche cuenta como el dia anterior. Se filtran noches con <2h de sueño o >16h en cama.
 
 ### Deteccion de ciclos
 
