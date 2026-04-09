@@ -33,7 +33,7 @@ redmoon dashboard         # abre el dashboard con datos de ejemplo
 </p>
 
 <p align="center">
-<img src="docs/screenshots/02_sueño_por_fase.png" alt="Sueño por fase del ciclo" width="700">
+<img src="docs/screenshots/02_sueno_por_fase.png" alt="Sueño por fase del ciclo" width="700">
 </p>
 
 <p align="center">
