@@ -2,6 +2,17 @@
 
 All notable changes to redmoon will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Summary comparison chart ("How my findings compare to published research")
+  covering all 6 findings from `RESEARCH.md` in one view — color-coded by match
+  type (direction+magnitude / direction-only / replicated null / weakest finding
+  / gap vs benchmark), not by a made-up numeric score. Added as a static image
+  in `RESEARCH.md`'s conclusion and as a live, bilingual chart in the
+  dashboard's "Related research" view.
+
 ## [0.3.1] - 2026-07-26
 
 ### Changed
