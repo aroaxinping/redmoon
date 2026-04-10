@@ -49,7 +49,7 @@ def parse_export(
     Parameters
     ----------
     xml_path : str
-        Path to the exportación.xml file.
+        Path to the export.xml file.
     progress_callback : callable, optional
         Function called with (records_found: int) periodically.
 
