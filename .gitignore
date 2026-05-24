@@ -1,0 +1,18 @@
+# Health data (private)
+data/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+UNKNOWN.egg-info/
+*.egg-info/
+dist/
+build/
