@@ -8,6 +8,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import seaborn as sns
 from scipy import stats
 from datetime import timedelta
@@ -122,6 +123,28 @@ LANG = {
             "- [Machine learning-based menstrual phase identification using wearable device data](https://www.nature.com/articles/s44294-025-00078-8) (2025). *npj Women's Health*.\n"
             "- [The Validity of Apple Watch Series 9 and Ultra 2 for HRV](https://pmc.ncbi.nlm.nih.gov/articles/PMC11478500/) (2024)."
         ),
+        "research_summary_title": "How my findings compare to published research — overview",
+        "research_summary_legend": {
+            "full_match": "Match: direction + magnitude",
+            "null_match": "Match: replicated null finding",
+            "direction": "Match: direction only (units differ)",
+            "caution": "Weakest finding — treat with caution",
+            "gap": "Gap vs published benchmark",
+        },
+        "research_summary_findings": [
+            {"label": "Wrist temperature", "category": "full_match",
+             "annotation": "+0.375°C  vs  +0.33°C (Shilaih 2018) — closest quantitative match"},
+            {"label": "Sleep duration / architecture", "category": "null_match",
+             "annotation": "Both redmoon and Alzueta 2022 find NO change — independent null replication"},
+            {"label": "HRV", "category": "direction",
+             "annotation": "Direction matches (Schmalenberger 2020) — different HRV units, can't compare size"},
+            {"label": "Resting heart rate", "category": "direction",
+             "annotation": "Direction matches (Alzueta 2022) — no reliable published bpm delta found"},
+            {"label": "Premenstrual awakenings", "category": "caution",
+             "annotation": "p=0.034 — weakest of all significant findings, least replicated"},
+            {"label": "ML phase prediction (F1)", "category": "gap",
+             "annotation": "Mine: F1=0.73  vs  published: 87% acc. / AUC 0.96 (Nature 2025 — different task/classes)"},
+        ],
     },
     "Español": {
         "sidebar_title": "Cycle & Sleep",
@@ -211,6 +234,28 @@ LANG = {
             "- [Machine learning-based menstrual phase identification using wearable device data](https://www.nature.com/articles/s44294-025-00078-8) (2025). *npj Women's Health*.\n"
             "- [The Validity of Apple Watch Series 9 and Ultra 2 for HRV](https://pmc.ncbi.nlm.nih.gov/articles/PMC11478500/) (2024)."
         ),
+        "research_summary_title": "Como se comparan mis hallazgos con la literatura publicada — resumen",
+        "research_summary_legend": {
+            "full_match": "Coincide: direccion + magnitud",
+            "null_match": "Coincide: hallazgo negativo replicado",
+            "direction": "Coincide: solo direccion (unidades distintas)",
+            "caution": "Hallazgo mas debil — tratar con cautela",
+            "gap": "Brecha frente al benchmark publicado",
+        },
+        "research_summary_findings": [
+            {"label": "Temperatura de muneca", "category": "full_match",
+             "annotation": "+0.375°C  vs  +0.33°C (Shilaih 2018) — coincidencia cuantitativa mas ajustada"},
+            {"label": "Duracion / arquitectura del sueno", "category": "null_match",
+             "annotation": "redmoon y Alzueta 2022 no encuentran cambio — replicacion independiente de un hallazgo negativo"},
+            {"label": "HRV", "category": "direction",
+             "annotation": "Coincide en direccion (Schmalenberger 2020) — unidades de HRV distintas, no comparable en magnitud"},
+            {"label": "Frecuencia cardiaca en reposo", "category": "direction",
+             "annotation": "Coincide en direccion (Alzueta 2022) — sin dato de magnitud en bpm fiable"},
+            {"label": "Despertares premenstruales", "category": "caution",
+             "annotation": "p=0.034 — el mas debil de los hallazgos significativos, el menos replicado"},
+            {"label": "Prediccion de fase (F1)", "category": "gap",
+             "annotation": "Mio: F1=0.73  vs  publicado: 87% acc. / AUC 0.96 (Nature 2025 — tarea/clases distintas)"},
+        ],
     },
 }
 
@@ -526,6 +571,33 @@ elif view == views[5]:  # Related research
                 ha="center", fontweight="bold")
     st.pyplot(fig)
     st.caption(T["research_temp_caption"])
+
+    st.markdown(f"### {T['research_summary_title']}")
+    color_map = {
+        "full_match": "#2ecc71", "null_match": "#3498db", "direction": "#f39c12",
+        "caution": "#e67e22", "gap": "#e74c3c",
+    }
+    findings = T["research_summary_findings"]
+    legend = T["research_summary_legend"]
+
+    fig, ax = plt.subplots(figsize=(11, 6))
+    y_pos = range(len(findings))
+    colors_list = [color_map[f["category"]] for f in findings]
+    bars = ax.barh(y_pos, [1] * len(findings), color=colors_list, alpha=0.85, height=0.6)
+    for bar, f in zip(bars, findings):
+        ax.text(bar.get_width() + 0.05, bar.get_y() + bar.get_height() / 2, f["annotation"],
+                va="center", fontsize=9)
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels([f["label"] for f in findings], fontsize=10)
+    ax.set_xlim(0, 1)
+    ax.set_xticks([])
+    ax.invert_yaxis()
+    handles = [mpatches.Patch(color=c, label=legend[k]) for k, c in color_map.items()]
+    ax.legend(handles=handles, loc="upper center", bbox_to_anchor=(0.3, -0.08), fontsize=8.5)
+    for spine in ["top", "right", "left", "bottom"]:
+        ax.spines[spine].set_visible(False)
+    plt.tight_layout()
+    st.pyplot(fig)
 
     st.markdown(f"### {T['research_sources_title']}")
     st.markdown(T["research_sources_md"])
