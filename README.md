@@ -66,6 +66,9 @@ Resultados reales con ~6 anos de datos de Apple Health (76 ciclos, 1,153 noches)
 
 **Conclusion**: las hormonas cambian tu fisiologia nocturna de forma muy clara (temperatura, HRV, frecuencia cardiaca), pero el sueño en si solo se ve afectado justo antes del periodo, con mas despertares.
 
+¿Como se compara esto con estudios publicados, y que tan fiable es el Apple Watch como
+instrumento? Analisis honesto, hallazgo por hallazgo, en [RESEARCH.md](RESEARCH.md).
+
 ---
 
 ## Como usar redmoon con tus datos
