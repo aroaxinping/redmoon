@@ -2,6 +2,24 @@
 
 All notable changes to redmoon will be documented in this file.
 
+## [0.3.1] - 2026-07-26
+
+### Changed
+
+- Translated all Spanish-only content to English for consistency across the
+  project: `README.md`, `RESEARCH.md`, `CHANGELOG.md`, `notebooks/analysis.ipynb`
+  (all 16 sections — headers, prints, chart titles and labels), and the
+  package's own console/library output — `CycleSleepAnalyzer.summary()`,
+  `METRIC_LABELS`, docstrings and CLI help text. `report.phase_means()` and
+  `report.statistical_tests()` now return English metric labels instead of
+  Spanish ones.
+- `dashboard.py`: renamed the ad-hoc "No-Lútea" classification label to
+  "Non-Luteal" for the same reason.
+
+Left untouched, on purpose: `PHASE_ORDER`'s literal values (`Menstrual`,
+`Folicular`, `Ovulatoria`, `Lútea`) — they're real data grouping keys used
+throughout the codebase, not display text.
+
 ## [0.3.0] - 2026-07-26
 
 ### Added
