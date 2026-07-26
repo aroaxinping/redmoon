@@ -83,6 +83,18 @@ class TestCycleSleepAnalyzerPipeline:
         assert "hrv_ms" in report.data.columns
         assert "resting_hr_bpm" in report.data.columns
 
+    def test_cycle_id_groups_nights_by_cycle(self, sample_data):
+        """cycle_id must be usable as a group key for GroupKFold: nights within
+        the same cycle share an id, and no cycle spans two different ids."""
+        analyzer = CycleSleepAnalyzer(sample_data)
+        report = analyzer.run()
+        assert "cycle_id" in report.data.columns
+        assert report.data["cycle_id"].notna().all()
+        # Each (cycle_id, cycle_length) pair should be consistent — a given
+        # cycle_id never mixes nights from two different real cycles.
+        pairs = report.data.groupby("cycle_id")["cycle_length"].nunique()
+        assert (pairs == 1).all()
+
 
 class TestCycleSleepReport:
     @pytest.fixture()
