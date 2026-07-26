@@ -313,7 +313,7 @@ def compute_f1_leakage_comparison(cs):
         return None, None
 
     X = pred_data[pred_cols].values
-    y = np.where(pred_data["phase"].values == "Lútea", "Lútea", "No-Lútea")
+    y = np.where(pred_data["phase"].values == "Lútea", "Lútea", "Non-Luteal")
     groups = pred_data["cycle_id"].values
     clf = RandomForestClassifier(n_estimators=100, random_state=42, class_weight="balanced")
 

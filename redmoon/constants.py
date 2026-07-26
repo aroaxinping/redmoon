@@ -57,20 +57,20 @@ NEW_PERIOD_GAP_DAYS: int = 5
 PREMENSTRUAL_WINDOW_DAYS: int = 5
 
 # ---------------------------------------------------------------------------
-# Metric labels (Spanish)
+# Metric labels
 # ---------------------------------------------------------------------------
 
 METRIC_LABELS: dict[str, str] = {
-    "total_sleep_min": "Duracion (min)",
+    "total_sleep_min": "Duration (min)",
     "pct_rem": "% REM",
     "pct_deep": "% Deep",
     "pct_core": "% Core",
-    "efficiency": "Eficiencia (%)",
-    "n_awakenings": "Despertares",
-    "temp_c": "Temperatura muneca (C)",
+    "efficiency": "Efficiency (%)",
+    "n_awakenings": "Awakenings",
+    "temp_c": "Wrist temperature (C)",
     "hrv_ms": "HRV (ms)",
     "resting_hr_bpm": "Resting HR (bpm)",
-    "disturbances": "Pert. respiratorias",
+    "disturbances": "Breathing disturbances",
 }
 
 SLEEP_METRICS: list[str] = [

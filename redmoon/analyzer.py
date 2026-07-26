@@ -40,7 +40,7 @@ class CycleSleepAnalyzer:
     Usage
     -----
     >>> from redmoon import parse_export, CycleSleepAnalyzer
-    >>> data = parse_export("exportación.xml")
+    >>> data = parse_export("export.xml")
     >>> analyzer = CycleSleepAnalyzer(data)
     >>> report = analyzer.run()
     >>> print(report.summary())
@@ -253,18 +253,18 @@ class CycleSleepReport:
         lines = [
             f"Cycle & Sleep Analysis Report",
             f"{'=' * 50}",
-            f"Noches analizadas: {self.n_nights}",
-            f"Ciclos completos: {self.n_cycles}",
-            f"Duracion media del ciclo: {self.mean_cycle_length:.1f} dias",
+            f"Nights analyzed: {self.n_nights}",
+            f"Complete cycles: {self.n_cycles}",
+            f"Average cycle length: {self.mean_cycle_length:.1f} days",
             "",
-            "Distribucion por fase:",
+            "Distribution by phase:",
         ]
         for p in self.phase_order:
             n = len(self.data[self.data["phase"] == p])
-            lines.append(f"  {p}: {n} noches ({n/self.n_nights*100:.1f}%)")
+            lines.append(f"  {p}: {n} nights ({n/self.n_nights*100:.1f}%)")
 
         lines.append("")
-        lines.append("Tests estadisticos (Kruskal-Wallis):")
+        lines.append("Statistical tests (Kruskal-Wallis):")
         lines.append("-" * 50)
         for t in self.statistical_tests():
             sig = "***" if t["p_value"] < 0.001 else "**" if t["p_value"] < 0.01 else "*" if t["p_value"] < 0.05 else "ns"
@@ -273,7 +273,7 @@ class CycleSleepReport:
         pms = self.premenstrual_effect()
         if pms:
             lines.append("")
-            lines.append("Efecto premenstrual (ultimos 5 dias vs resto lutea):")
+            lines.append("Premenstrual effect (last 5 days vs rest of luteal phase):")
             lines.append("-" * 50)
             for r in pms:
                 sig = "*" if r["significant"] else "ns"

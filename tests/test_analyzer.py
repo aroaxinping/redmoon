@@ -127,8 +127,8 @@ class TestCycleSleepReport:
     def test_summary_is_string(self, report):
         s = report.summary()
         assert isinstance(s, str)
-        assert "Noches analizadas" in s
-        assert "Ciclos completos" in s
+        assert "Nights analyzed" in s
+        assert "Complete cycles" in s
         assert "Kruskal-Wallis" in s
 
     def test_n_nights_positive(self, report):
